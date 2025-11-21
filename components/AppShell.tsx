@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { BookOpen, Feather, Sparkles, User, Layout } from 'lucide-react';
+import { BookOpen, Compass } from 'lucide-react';
 import { ViewState } from '../types';
 
 interface AppShellProps {
@@ -12,7 +13,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
   return (
     <div className="min-h-screen flex flex-col font-sans bg-ivory text-stone-900 selection:bg-saffron-200">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-ivory/80 backdrop-blur-md border-b border-stone-200">
+      <header className="sticky top-0 z-50 bg-ivory/80 backdrop-blur-md border-b border-stone-200 transition-all duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div 
             className="flex items-center gap-2 cursor-pointer group"
@@ -25,6 +26,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600">
+            <button 
+              onClick={() => setView(ViewState.EXPLORE)}
+              className={`flex items-center gap-2 hover:text-stone-900 transition-colors ${currentView === ViewState.EXPLORE ? 'text-saffron-600' : ''}`}
+            >
+              <Compass size={16} />
+              Explore
+            </button>
             <button 
               onClick={() => setView(ViewState.WIZARD)}
               className={`hover:text-stone-900 transition-colors ${currentView === ViewState.WIZARD ? 'text-saffron-600' : ''}`}
@@ -46,9 +54,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           </nav>
 
           <div className="flex items-center gap-4">
-             <button className="p-2 rounded-full hover:bg-stone-100 transition-colors">
-              <User size={20} className="text-stone-500" />
-            </button>
+            {/* Auth buttons removed */}
           </div>
         </div>
       </header>

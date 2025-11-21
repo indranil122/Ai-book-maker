@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { AppShell } from './components/AppShell';
 import { Landing } from './components/Landing';
 import { BookWizard } from './components/BookWizard';
 import { Editor } from './components/Editor';
 import { Reader } from './components/Reader';
+import { Explore } from './components/Explore';
 import { ViewState, Book } from './types';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -48,14 +50,20 @@ const App: React.FC = () => {
       case ViewState.EDITOR:
         return currentBook ? <Editor book={currentBook} onUpdateBook={handleBookUpdate} /> : <div className="p-8 text-center">Please create a book first.</div>;
       case ViewState.READER:
+        // Library might be public or private, let's allow public view for now or mock book if no user
         return currentBook ? <Reader book={currentBook} /> : <Reader book={MOCK_BOOK} />;
+      case ViewState.EXPLORE:
+        return <Explore />;
       default:
         return <Landing onStart={handleStart} />;
     }
   };
 
   return (
-    <AppShell currentView={currentView} setView={setView}>
+    <AppShell 
+      currentView={currentView} 
+      setView={setView} 
+    >
       <AnimatePresence mode="wait">
         <motion.div
           key={currentView}

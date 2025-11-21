@@ -1,8 +1,19 @@
+
 export enum ViewState {
   LANDING = 'LANDING',
   WIZARD = 'WIZARD',
   EDITOR = 'EDITOR',
   READER = 'READER',
+  EXPLORE = 'EXPLORE',
+  LOGIN = 'LOGIN',
+  SIGNUP = 'SIGNUP',
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
 }
 
 export interface Chapter {

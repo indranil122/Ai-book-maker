@@ -14,9 +14,9 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
   const [generatedBook, setGeneratedBook] = useState<BookType | null>(null);
   const [formData, setFormData] = useState<GenerationParams>({
     title: '',
-    genre: 'Science Fiction',
-    tone: 'Adventurous',
-    audience: 'Young Adult',
+    genre: 'Dark Romance',
+    tone: 'Gothic & Mysterious',
+    audience: 'Adult',
     prompt: '',
   });
 
@@ -221,7 +221,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
               type="text"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="e.g., The Last Starship"
+              placeholder="e.g., The Rose & The Dagger"
               className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
             />
           </div>
@@ -234,9 +234,12 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
                 onChange={(e) => handleChange('genre', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
               >
+                <option>Dark Romance</option>
                 <option>Science Fiction</option>
-                <option>Fantasy</option>
-                <option>Mystery</option>
+                <option>Cyberpunk</option>
+                <option>High Fantasy</option>
+                <option>Cozy Mystery</option>
+                <option>Psychological Thriller</option>
                 <option>Romance</option>
                 <option>Non-Fiction / Business</option>
                 <option>Children's Book</option>
@@ -249,11 +252,13 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
                 onChange={(e) => handleChange('tone', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
               >
+                <option>Gothic & Mysterious</option>
                 <option>Adventurous</option>
                 <option>Dark & Gritty</option>
+                <option>Whimsical & Cute</option>
                 <option>Humorous</option>
                 <option>Academic</option>
-                <option>Whimsical</option>
+                <option>Romantic & Emotional</option>
               </select>
             </div>
           </div>
@@ -265,8 +270,8 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
                 onChange={(e) => handleChange('audience', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
               >
-                <option>Young Adult</option>
                 <option>Adult</option>
+                <option>Young Adult</option>
                 <option>Middle Grade</option>
                 <option>Children</option>
               </select>
@@ -277,7 +282,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
             <textarea
               value={formData.prompt}
               onChange={(e) => handleChange('prompt', e.target.value)}
-              placeholder="A boy discovers he can talk to machines..."
+              placeholder="A forbidden romance between rival noble houses in a gothic city..."
               rows={4}
               className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all resize-none"
             />
