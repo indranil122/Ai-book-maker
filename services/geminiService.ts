@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Chapter, Book } from "../types";
 
-const API_KEY = process.env.API_KEY || '';
+const API_KEY = process.env.AIzaSyDk35hN7SfjjW0wF2l68CmWNtx5doJv23g || '';
 
 class GeminiService {
   private ai: GoogleGenAI;
