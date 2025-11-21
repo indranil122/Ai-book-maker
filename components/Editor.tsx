@@ -3,7 +3,8 @@ import React, { useState, useRef } from 'react';
 import { Book as BookType, Chapter } from '../types';
 import { geminiService } from '../services/geminiService';
 import { epubService } from '../services/epubService';
-import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download } from 'lucide-react';
+import { pdfService } from '../services/pdfService';
+import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditorProps {
@@ -118,7 +119,19 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
         await epubService.generateEpub(book);
     } catch(e) {
         console.error(e);
-        alert("Export failed.");
+        alert("EPUB Export failed.");
+    } finally {
+        setIsExporting(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setIsExporting(true);
+    try {
+        pdfService.generatePdf(book);
+    } catch(e) {
+        console.error(e);
+        alert("PDF Export failed.");
     } finally {
         setIsExporting(false);
     }
@@ -288,9 +301,20 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                onClick={handleExportEpub}
                disabled={isExporting}
                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 rounded-md transition-colors disabled:opacity-50"
+               title="Download ePub"
              >
                 {isExporting ? <Loader2 size={14} className="animate-spin"/> : <Download size={14} />}
-                Export ePub
+                ePub
+             </button>
+
+             <button 
+               onClick={handleExportPdf}
+               disabled={isExporting}
+               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 rounded-md transition-colors disabled:opacity-50"
+               title="Download PDF"
+             >
+                {isExporting ? <Loader2 size={14} className="animate-spin"/> : <FileText size={14} />}
+                PDF
              </button>
 
              <button 
