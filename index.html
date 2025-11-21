@@ -9,6 +9,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
     <script>
+      // Shim for process.env to prevent "process is not defined" crashes in browser environments
+      window.process = {
+        env: {
+          NODE_ENV: 'development',
+          API_KEY: '' // This will be populated by your build tool or remain empty in static deploy
+        }
+      };
+      
       tailwind.config = {
         theme: {
           extend: {
@@ -75,5 +83,6 @@
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>
