@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Book, Loader2, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
-import { Book as BookType, GenerationParams } from '../types';
+import { Book as BookType, GenerationParams, Chapter } from '../types';
 
 interface BookWizardProps {
   onBookCreated: (book: BookType) => void;
@@ -10,6 +10,7 @@ interface BookWizardProps {
 
 export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
   const [status, setStatus] = useState<'idle' | 'generating' | 'complete'>('idle');
+  const [progressStep, setProgressStep] = useState<string>('');
   const [generatedBook, setGeneratedBook] = useState<BookType | null>(null);
   const [formData, setFormData] = useState<GenerationParams>({
     title: '',
@@ -25,9 +26,18 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
   const handleSubmit = async () => {
     setStatus('generating');
+    setProgressStep('Drafting book structure and outline...');
+
     try {
-      // Generate Structure and Cover in parallel
-      const structurePromise = geminiService.generateBookStructure(
+      // 1. Start Cover Generation (Background)
+      const coverPromise = geminiService.generateBookCover(
+        formData.title,
+        formData.genre,
+        formData.tone
+      );
+
+      // 2. Generate Structure
+      const partialBook = await geminiService.generateBookStructure(
         formData.title,
         formData.genre,
         formData.tone,
@@ -35,13 +45,36 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
         formData.prompt
       );
 
-      const coverPromise = geminiService.generateBookCover(
-        formData.title,
-        formData.genre,
-        formData.tone
-      );
+      if (!partialBook.chapters) {
+        throw new Error("Failed to generate chapters");
+      }
 
-      const [partialBook, coverImage] = await Promise.all([structurePromise, coverPromise]);
+      // 3. Generate Content for EACH Chapter
+      const fullyWrittenChapters: Chapter[] = [];
+      const totalChapters = partialBook.chapters.length;
+
+      for (let i = 0; i < totalChapters; i++) {
+        const chapter = partialBook.chapters[i];
+        setProgressStep(`Writing Chapter ${i + 1} of ${totalChapters}: "${chapter.title}"...`);
+        
+        // Use previous chapter summary for continuity context
+        const prevSummary = i > 0 ? partialBook.chapters[i - 1].summary : undefined;
+        
+        const content = await geminiService.generateChapterContent(
+          partialBook.title || formData.title,
+          chapter,
+          prevSummary
+        );
+
+        fullyWrittenChapters.push({
+          ...chapter,
+          content: content,
+          isGenerated: true
+        });
+      }
+
+      setProgressStep('Finalizing cover art...');
+      const coverImage = await coverPromise;
 
       const newBook: BookType = {
         id: crypto.randomUUID(),
@@ -50,7 +83,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
         genre: formData.genre,
         tone: formData.tone,
         targetAudience: formData.audience,
-        chapters: partialBook.chapters || [],
+        chapters: fullyWrittenChapters,
         createdAt: new Date(),
         coverImage: coverImage || `https://picsum.photos/seed/${Date.now()}/600/900`
       };
@@ -66,8 +99,8 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
   if (status === 'generating') {
     return (
-      <div className="flex flex-col items-center justify-center h-[80vh]">
-        <div className="relative">
+      <div className="flex flex-col items-center justify-center h-[80vh] px-4">
+        <div className="relative mb-8">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
@@ -76,23 +109,26 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="text-saffron-500"
+            className="text-saffron-500 relative z-10"
           >
             <Loader2 size={64} />
           </motion.div>
         </div>
         <motion.h2
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ repeat: Infinity, duration: 2, repeatType: "reverse" }}
-          className="mt-8 font-serif text-3xl font-medium text-stone-800"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="font-serif text-3xl font-medium text-stone-800 text-center"
         >
-          Crafting your story...
+          Creating your masterpiece
         </motion.h2>
-        <div className="mt-4 space-y-2 text-center text-stone-500">
-          <p>Designing a unique cover art...</p>
-          <p>Outlining chapters and plot twists...</p>
-        </div>
+        <motion.div
+           key={progressStep}
+           initial={{ opacity: 0, y: 5 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="mt-4 p-4 bg-stone-50 rounded-xl border border-stone-100 text-stone-600 font-mono text-sm shadow-sm max-w-md text-center"
+        >
+          {progressStep}
+        </motion.div>
       </div>
     );
   }
@@ -127,22 +163,24 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-4">
                 <CheckCircle2 size={16} />
-                <span>Book Generated Successfully</span>
+                <span>Full Book Generated</span>
               </div>
               <h2 className="font-serif text-4xl font-bold text-stone-900 mb-2">{generatedBook.title}</h2>
               <p className="text-lg text-stone-500 font-medium">by {generatedBook.author}</p>
+              <p className="text-sm text-stone-400 mt-1">{generatedBook.chapters.reduce((acc, ch) => acc + (ch.content.split(' ').length || 0), 0)} words written</p>
             </div>
 
             <div className="bg-stone-50 rounded-xl p-6 border border-stone-100 max-h-[300px] overflow-y-auto">
-              <h3 className="font-bold text-stone-700 mb-3 text-sm uppercase tracking-wide">Chapter Outline</h3>
+              <h3 className="font-bold text-stone-700 mb-3 text-sm uppercase tracking-wide">Table of Contents</h3>
               <ul className="space-y-3 text-left">
                 {generatedBook.chapters.map((ch, i) => (
                   <li key={ch.id} className="flex items-start gap-3 text-stone-600 text-sm">
                     <span className="font-mono text-saffron-500 font-bold pt-0.5 shrink-0">{i + 1}.</span>
                     <span>
                       <strong className="text-stone-800 block">{ch.title}</strong>
-                      <span className="text-stone-400 block">{ch.summary}</span>
+                      <span className="text-stone-400 block line-clamp-1">{ch.summary}</span>
                     </span>
+                    {ch.isGenerated && <span className="ml-auto text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Ready</span>}
                   </li>
                 ))}
               </ul>
@@ -152,7 +190,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
               onClick={() => onBookCreated(generatedBook)}
               className="w-full md:w-auto px-8 py-4 bg-stone-900 text-white text-lg font-bold rounded-xl hover:bg-saffron-500 transition-colors shadow-lg hover:shadow-saffron-500/30 flex items-center justify-center gap-2 group"
             >
-              Open in Editor
+              Open Book
               <ArrowRight className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
@@ -171,7 +209,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
         <div className="bg-stone-900 p-8 text-ivory relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="font-serif text-3xl font-bold mb-2">Create a New Book</h2>
-            <p className="text-stone-400">Tell us a bit about your idea, and we'll build the skeleton.</p>
+            <p className="text-stone-400">Tell us a bit about your idea, and we'll build the entire book.</p>
           </div>
           <Sparkles className="absolute top-4 right-4 text-stone-700 opacity-20 w-32 h-32" />
         </div>
@@ -251,7 +289,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
             className="w-full py-4 bg-saffron-500 hover:bg-saffron-600 text-white font-bold rounded-xl shadow-lg shadow-saffron-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-2"
           >
             <Sparkles size={20} />
-            Generate Book & Cover
+            Generate Full Book
           </button>
         </div>
       </motion.div>
