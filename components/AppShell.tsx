@@ -16,13 +16,16 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
       <header className="sticky top-0 z-50 bg-ivory/80 backdrop-blur-md border-b border-stone-200 transition-all duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div 
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-3 cursor-pointer group"
             onClick={() => setView(ViewState.LANDING)}
           >
-            <div className="w-8 h-8 bg-stone-900 rounded-lg flex items-center justify-center text-ivory group-hover:bg-saffron-500 transition-colors duration-300">
-              <BookOpen size={18} />
+            <div className="w-9 h-9 bg-stone-900 rounded-lg flex items-center justify-center text-ivory group-hover:bg-saffron-500 transition-colors duration-300 shrink-0 shadow-sm">
+              <BookOpen size={20} />
             </div>
-            <span className="font-serif font-bold text-xl tracking-tight">Lumina</span>
+            <div className="flex flex-col justify-center">
+              <span className="font-serif font-bold text-xl tracking-tight leading-none text-stone-900 group-hover:text-saffron-600 transition-colors">Lumina</span>
+              <span className="text-[0.6rem] font-medium text-stone-400 uppercase tracking-widest font-sans leading-none mt-1">by Chatterjee House of Apps</span>
+            </div>
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600">
