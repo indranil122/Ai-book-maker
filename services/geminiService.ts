@@ -230,17 +230,12 @@ class GeminiService {
 
   /**
    * Generates the content for a specific chapter based on its summary and previous context.
+   * Includes retry logic to prevent blank chapters.
    */
   async generateChapterContent(bookTitle: string, chapter: Chapter, previousChapterSummary?: string): Promise<string> {
     if (!API_KEY) return "API Key missing. Mock content generated.";
     
     const model = "gemini-2.5-flash"; 
-    
-    // We assume the genre/tone is passed or we default to a general sophisticated prompt. 
-    // In a real app, we'd pass these in. For now, we'll use a robust default that encourages high quality.
-    // To fix the type signature issue without changing all callsites immediately, 
-    // I will hardcode a "General Masterpiece" check or just use a robust standard prompt here.
-    // However, for best results, I'll infer it's a high-quality request.
     
     const prompt = `
       You are writing the book "${bookTitle}".
@@ -258,17 +253,32 @@ class GeminiService {
       - Do NOT include the chapter title at the start. Start directly with the story.
     `;
 
-    try {
-      const response = await this.ai.models.generateContent({
-        model: model,
-        contents: prompt,
-      });
+    const maxRetries = 3;
+    let attempts = 0;
 
-      return response.text || "Content generation returned empty.";
-    } catch (error) {
-      console.error("Chapter generation failed:", error);
-      return "Failed to generate content. Please try again.";
+    while (attempts < maxRetries) {
+        try {
+            const response = await this.ai.models.generateContent({
+                model: model,
+                contents: prompt,
+            });
+
+            const text = response.text;
+            
+            // Validation: Ensure we have actual content
+            if (text && text.length > 100) {
+                return text;
+            } else {
+                console.warn(`Attempt ${attempts + 1} returned empty or too short content.`);
+                attempts++;
+            }
+        } catch (error) {
+            console.error(`Chapter generation failed (Attempt ${attempts + 1}):`, error);
+            attempts++;
+        }
     }
+
+    return ""; // Return empty string to indicate failure, UI should handle this
   }
 
   /**

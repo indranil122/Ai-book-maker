@@ -1,9 +1,10 @@
+
 import React, { useState, useRef } from 'react';
 import { Book as BookType, Chapter } from '../types';
 import { geminiService } from '../services/geminiService';
 import { epubService } from '../services/epubService';
 import { pdfService } from '../services/pdfService';
-import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText } from 'lucide-react';
+import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditorProps {
@@ -52,6 +53,10 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       const prevChapterSummary = activeChapterIndex > 0 ? book.chapters[activeChapterIndex - 1].summary : undefined;
       const content = await geminiService.generateChapterContent(book.title, activeChapter, prevChapterSummary);
       
+      if (!content || content.length < 50) {
+          throw new Error("Content generation returned empty.");
+      }
+
       handleContentChange(content);
       
       const updatedChapters = [...book.chapters];
@@ -60,7 +65,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
 
     } catch (error) {
       console.error(error);
-      alert("Failed to generate content");
+      alert("Failed to generate content. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -139,6 +144,9 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   if (!book.chapters.length) {
     return <div className="p-12 text-center text-stone-500 dark:text-stone-400">No chapters found. Please create a book first.</div>;
   }
+
+  // Check if chapter is effectively empty
+  const isChapterEmpty = !activeChapter.content || activeChapter.content.trim().length < 50;
 
   return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden relative bg-ivory dark:bg-stone-950 transition-colors duration-300">
@@ -259,7 +267,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                     <span className="text-xs text-stone-400 dark:text-stone-500 font-mono mb-0.5">Chapter {idx + 1}</span>
                     <span className="truncate">{chapter.title}</span>
                   </div>
-                  {chapter.isGenerated && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500" title="Content Generated" />}
+                  {chapter.isGenerated && chapter.content.length > 50 && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500" title="Content Generated" />}
                 </div>
               </button>
             </li>
@@ -298,7 +306,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
 
              <button 
                onClick={handleExportEpub}
-               disabled={isExporting}
+               disabled={isExporting || isChapterEmpty}
                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50"
                title="Download ePub"
              >
@@ -308,7 +316,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
 
              <button 
                onClick={handleExportPdf}
-               disabled={isExporting}
+               disabled={isExporting || isChapterEmpty}
                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50"
                title="Download PDF"
              >
@@ -322,7 +330,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50"
              >
                {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-               {activeChapter.content ? 'Rewrite Chapter' : 'Generate Content'}
+               {isChapterEmpty ? 'Generate Content' : 'Re-Generate'}
              </button>
              <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors">
                <Save size={14} /> Save
@@ -332,21 +340,41 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
 
         {/* Editor Input */}
         <div className="flex-1 overflow-y-auto p-8 md:p-12 relative">
-          <div className="max-w-3xl mx-auto">
-            {isGenerating && !activeChapter.content && (
-               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-stone-950/80 z-10 backdrop-blur-sm">
-                  <Loader2 className="animate-spin text-saffron-500 mb-3" size={32} />
-                  <p className="text-stone-500 dark:text-stone-400 animate-pulse font-serif text-lg">Drafting chapter content...</p>
+          <div className="max-w-3xl mx-auto min-h-full">
+            {isGenerating && (
+               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-stone-950/80 z-10 backdrop-blur-sm transition-opacity">
+                  <Loader2 className="animate-spin text-saffron-500 mb-3" size={40} />
+                  <p className="text-stone-500 dark:text-stone-400 animate-pulse font-serif text-lg">Crafting story segments...</p>
                </div>
             )}
-            <textarea
-              ref={textareaRef}
-              value={activeChapter.content}
-              onChange={(e) => handleContentChange(e.target.value)}
-              onSelect={handleSelect}
-              placeholder="Start writing or click 'Generate Content' to let AI take the lead..."
-              className="w-full h-[70vh] bg-transparent border-none focus:ring-0 text-lg md:text-xl font-serif leading-loose text-stone-800 dark:text-stone-200 resize-none placeholder:text-stone-300 dark:placeholder:text-stone-600 placeholder:font-sans placeholder:italic focus:outline-none selection:bg-saffron-200 dark:selection:bg-saffron-900/50"
-            />
+            
+            {isChapterEmpty && !isGenerating ? (
+              <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8 border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl">
+                 <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mb-4 text-stone-400">
+                    <AlertTriangle size={28} />
+                 </div>
+                 <h3 className="text-xl font-serif font-bold text-stone-700 dark:text-stone-300 mb-2">This chapter is empty</h3>
+                 <p className="text-stone-500 dark:text-stone-400 max-w-md mb-6">
+                   The AI hasn't written this chapter yet, or the content was lost. Click below to have the AI write it for you.
+                 </p>
+                 <button 
+                   onClick={generateContent}
+                   className="px-6 py-3 bg-saffron-500 hover:bg-saffron-600 text-white font-bold rounded-lg shadow-lg shadow-saffron-500/30 transition-all flex items-center gap-2"
+                 >
+                   <Wand2 size={18} />
+                   Write Chapter Now
+                 </button>
+              </div>
+            ) : (
+              <textarea
+                ref={textareaRef}
+                value={activeChapter.content}
+                onChange={(e) => handleContentChange(e.target.value)}
+                onSelect={handleSelect}
+                placeholder="Start writing or click 'Generate Content' to let AI take the lead..."
+                className="w-full h-[70vh] bg-transparent border-none focus:ring-0 text-lg md:text-xl font-serif leading-loose text-stone-800 dark:text-stone-200 resize-none placeholder:text-stone-300 dark:placeholder:text-stone-600 placeholder:font-sans placeholder:italic focus:outline-none selection:bg-saffron-200 dark:selection:bg-saffron-900/50"
+              />
+            )}
           </div>
         </div>
 
@@ -360,7 +388,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
              <ChevronLeft size={16} /> Previous
            </button>
            <span className="text-xs font-mono bg-stone-200/50 dark:bg-stone-800/50 px-2 py-0.5 rounded text-stone-600 dark:text-stone-400">
-             {activeChapter.content.split(/\s+/).filter(w => w.length > 0).length} words
+             {activeChapter.content ? activeChapter.content.split(/\s+/).filter(w => w.length > 0).length : 0} words
            </span>
            <button 
              disabled={activeChapterIndex === book.chapters.length - 1}
