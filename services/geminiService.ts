@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Chapter, Book } from "../types";
 import { GOOGLE_API_KEY } from "../config";
 
-const API_KEY = GOOGLE_API_KEY;
+const API_KEY ="AIzaSyDk35hN7SfjjW0wF2l68CmWNtx5doJv23g";
 
 class GeminiService {
   private ai: GoogleGenAI;
