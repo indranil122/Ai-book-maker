@@ -23,10 +23,9 @@ export default defineConfig(({ mode }) => {
     rollupOptions: {
       output: {
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'react-vendor': ['react', 'react-dom'],
           'ui-vendor': ['lucide-react'],
-          'pdf-vendor': ['jspdf', 'html2canvas'],
-        },
+          'pdf-vendor': ['jspdf'],        },
       },
     },
     chunkSizeWarningLimit: 1000,
