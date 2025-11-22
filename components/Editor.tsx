@@ -4,7 +4,7 @@ import { Book as BookType, Chapter } from '../types';
 import { geminiService } from '../services/geminiService';
 import { epubService } from '../services/epubService';
 import { pdfService } from '../services/pdfService';
-import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText, AlertTriangle } from 'lucide-react';
+import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText, AlertTriangle, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditorProps {
@@ -17,6 +17,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   
   // Rewriting state
   const [selectionRange, setSelectionRange] = useState<{start: number, end: number} | null>(null);
@@ -65,7 +66,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
 
     } catch (error) {
       console.error(error);
-      alert("Failed to generate content. Please try again.");
+      alert("Failed to generate content. Please check your connection and try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -112,6 +113,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
 
     } catch (error) {
       console.error("Rewrite failed", error);
+      alert("Failed to rewrite selection.");
     } finally {
       setIsRewriting(false);
     }
@@ -158,7 +160,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4"
+            className="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
@@ -217,75 +219,99 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
         )}
       </AnimatePresence>
 
-      {/* Sidebar - Chapter List */}
-      <aside className="w-72 bg-stone-100 dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 overflow-y-auto hidden md:block transition-colors duration-300">
-        <div className="p-5 border-b border-stone-200 dark:border-stone-800">
-          {/* Cover Image in Sidebar */}
-           <div className="w-full aspect-[3/4] mb-4 rounded-lg overflow-hidden shadow-md relative group bg-stone-200 dark:bg-stone-800">
-             {book.coverImage ? (
-                <img 
-                  src={book.coverImage} 
-                  alt={book.title} 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-             ) : (
-               <div className="w-full h-full flex items-center justify-center text-stone-400 flex-col gap-2">
-                 <ImageIcon size={24} />
-                 <span className="text-xs">No Cover</span>
-               </div>
-             )}
-             
-             {/* Overlay Button for Regeneration */}
-             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-[2px]">
-                <button 
-                  onClick={handleRegenerateCover}
-                  disabled={isGeneratingCover}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-saffron-500 hover:border-saffron-500 border border-white/50 rounded-full backdrop-blur-md transition-all transform hover:scale-105"
-                >
-                  {isGeneratingCover ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-                  <span className="text-xs font-bold tracking-wide">{isGeneratingCover ? 'Painting...' : 'New Cover'}</span>
-                </button>
-             </div>
-           </div>
-
-          <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg leading-tight mb-1">{book.title}</h3>
-          <p className="text-xs text-stone-500 dark:text-stone-400 font-medium uppercase tracking-wider">{book.chapters.length} Chapters</p>
-        </div>
-        <ul className="py-2 space-y-0.5">
-          {book.chapters.map((chapter, idx) => (
-            <li key={chapter.id}>
-              <button
-                onClick={() => setActiveChapterIndex(idx)}
-                className={`w-full text-left px-5 py-3 text-sm transition-all border-l-4 ${
-                  activeChapterIndex === idx 
-                    ? 'bg-white dark:bg-stone-800 border-saffron-500 font-semibold text-stone-900 dark:text-stone-100 shadow-sm' 
-                    : 'border-transparent text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 hover:text-stone-800 dark:hover:text-stone-200'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex flex-col overflow-hidden">
-                    <span className="text-xs text-stone-400 dark:text-stone-500 font-mono mb-0.5">Chapter {idx + 1}</span>
-                    <span className="truncate">{chapter.title}</span>
-                  </div>
-                  {chapter.isGenerated && chapter.content.length > 50 && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500" title="Content Generated" />}
-                </div>
+      {/* Sidebar - Chapter List (Mobile Responsive) */}
+      <AnimatePresence>
+        {(showMobileSidebar || window.innerWidth >= 768) && (
+          <motion.aside 
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: -300 }}
+            className={`
+              absolute md:static inset-y-0 left-0 z-30 w-72 
+              bg-stone-100 dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 
+              overflow-y-auto transition-colors duration-300 shadow-2xl md:shadow-none
+              ${!showMobileSidebar ? 'hidden md:block' : 'block'}
+            `}
+          >
+            <div className="p-5 border-b border-stone-200 dark:border-stone-800 relative">
+              <button onClick={() => setShowMobileSidebar(false)} className="md:hidden absolute top-4 right-4 text-stone-400">
+                <X size={20} />
               </button>
-            </li>
-          ))}
-        </ul>
-      </aside>
+
+              {/* Cover Image in Sidebar */}
+               <div className="w-full aspect-[3/4] mb-4 rounded-lg overflow-hidden shadow-md relative group bg-stone-200 dark:bg-stone-800">
+                 {book.coverImage ? (
+                    <img 
+                      src={book.coverImage} 
+                      alt={book.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                 ) : (
+                   <div className="w-full h-full flex items-center justify-center text-stone-400 flex-col gap-2">
+                     <ImageIcon size={24} />
+                     <span className="text-xs">No Cover</span>
+                   </div>
+                 )}
+                 
+                 {/* Overlay Button for Regeneration */}
+                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white backdrop-blur-[2px]">
+                    <button 
+                      onClick={handleRegenerateCover}
+                      disabled={isGeneratingCover}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-saffron-500 hover:border-saffron-500 border border-white/50 rounded-full backdrop-blur-md transition-all transform hover:scale-105"
+                    >
+                      {isGeneratingCover ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                      <span className="text-xs font-bold tracking-wide">{isGeneratingCover ? 'Painting...' : 'New Cover'}</span>
+                    </button>
+                 </div>
+               </div>
+
+              <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg leading-tight mb-1">{book.title}</h3>
+              <p className="text-xs text-stone-500 dark:text-stone-400 font-medium uppercase tracking-wider">{book.chapters.length} Chapters</p>
+            </div>
+            <ul className="py-2 space-y-0.5">
+              {book.chapters.map((chapter, idx) => (
+                <li key={chapter.id}>
+                  <button
+                    onClick={() => {
+                      setActiveChapterIndex(idx);
+                      setShowMobileSidebar(false);
+                    }}
+                    className={`w-full text-left px-5 py-3 text-sm transition-all border-l-4 ${
+                      activeChapterIndex === idx 
+                        ? 'bg-white dark:bg-stone-800 border-saffron-500 font-semibold text-stone-900 dark:text-stone-100 shadow-sm' 
+                        : 'border-transparent text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 hover:text-stone-800 dark:hover:text-stone-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-xs text-stone-400 dark:text-stone-500 font-mono mb-0.5">Chapter {idx + 1}</span>
+                        <span className="truncate">{chapter.title}</span>
+                      </div>
+                      {chapter.isGenerated && chapter.content.length > 50 && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500" title="Content Generated" />}
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </motion.aside>
+        )}
+      </AnimatePresence>
 
       {/* Main Editor Area */}
-      <main className="flex-1 flex flex-col bg-ivory dark:bg-stone-950 relative transition-colors duration-300">
+      <main className="flex-1 flex flex-col bg-ivory dark:bg-stone-950 relative transition-colors duration-300 w-full">
         {/* Toolbar */}
-        <div className="h-14 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between px-6 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm">
+        <div className="h-14 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 md:px-6 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm">
            <div className="flex items-center gap-2 overflow-hidden">
-             <h2 className="font-medium text-stone-700 dark:text-stone-300 truncate">
-                <span className="text-stone-400 dark:text-stone-500 font-normal mr-2">Editing:</span>
+             <button onClick={() => setShowMobileSidebar(true)} className="md:hidden p-1 text-stone-500 mr-2">
+               <PanelLeftOpen size={20} />
+             </button>
+             <h2 className="font-medium text-stone-700 dark:text-stone-300 truncate max-w-[150px] md:max-w-none">
+                <span className="text-stone-400 dark:text-stone-500 font-normal mr-2 hidden sm:inline">Editing:</span>
                 {activeChapter.title}
              </h2>
            </div>
-           <div className="flex items-center gap-2 shrink-0">
+           <div className="flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
              {/* Rewrite Button (Only visible when selecting) */}
              <AnimatePresence>
                {selectionRange && (
@@ -294,55 +320,52 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                    animate={{ opacity: 1, x: 0 }}
                    exit={{ opacity: 0, x: 10 }}
                    onClick={() => setShowRewriteModal(true)}
-                   className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-ivory dark:text-stone-900 bg-stone-900 dark:bg-stone-100 hover:bg-saffron-500 dark:hover:bg-saffron-400 rounded-md transition-colors shadow-lg"
+                   className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-ivory dark:text-stone-900 bg-stone-900 dark:bg-stone-100 hover:bg-saffron-500 dark:hover:bg-saffron-400 rounded-md transition-colors shadow-lg whitespace-nowrap"
                  >
                    <PenLine size={14} />
-                   Rewrite Selection
+                   <span className="hidden sm:inline">Rewrite</span>
                  </motion.button>
                )}
              </AnimatePresence>
 
-             <div className="w-px h-6 bg-stone-300 dark:bg-stone-700 mx-2" />
+             <div className="w-px h-6 bg-stone-300 dark:bg-stone-700 mx-2 hidden sm:block" />
 
              <button 
                onClick={handleExportEpub}
                disabled={isExporting || isChapterEmpty}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50"
+               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
                title="Download ePub"
              >
                 {isExporting ? <Loader2 size={14} className="animate-spin"/> : <Download size={14} />}
-                ePub
+                <span className="hidden sm:inline">ePub</span>
              </button>
 
              <button 
                onClick={handleExportPdf}
                disabled={isExporting || isChapterEmpty}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50"
+               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
                title="Download PDF"
              >
                 {isExporting ? <Loader2 size={14} className="animate-spin"/> : <FileText size={14} />}
-                PDF
+                <span className="hidden sm:inline">PDF</span>
              </button>
 
              <button 
                onClick={generateContent}
                disabled={isGenerating}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50"
+               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
              >
                {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-               {isChapterEmpty ? 'Generate Content' : 'Re-Generate'}
-             </button>
-             <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors">
-               <Save size={14} /> Save
+               <span className="hidden sm:inline">{isChapterEmpty ? 'Generate' : 'Re-Gen'}</span>
              </button>
            </div>
         </div>
 
         {/* Editor Input */}
-        <div className="flex-1 overflow-y-auto p-8 md:p-12 relative">
+        <div className="flex-1 overflow-y-auto p-4 md:p-12 relative">
           <div className="max-w-3xl mx-auto min-h-full">
             {isGenerating && (
-               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-stone-950/80 z-10 backdrop-blur-sm transition-opacity">
+               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-stone-950/80 z-10 backdrop-blur-sm transition-opacity rounded-xl">
                   <Loader2 className="animate-spin text-saffron-500 mb-3" size={40} />
                   <p className="text-stone-500 dark:text-stone-400 animate-pulse font-serif text-lg">Crafting story segments...</p>
                </div>

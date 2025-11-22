@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Book as BookType, ChatMessage } from '../types';
 import { geminiService } from '../services/geminiService';
@@ -90,24 +91,24 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
     <div className="flex h-[calc(100vh-4rem)] bg-stone-100 dark:bg-stone-900 relative overflow-hidden transition-colors duration-300">
       
       {/* Reader Container */}
-      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${showChat ? 'mr-96' : 'mr-0'}`}>
-        <div className="max-w-3xl mx-auto min-h-full bg-ivory dark:bg-stone-950 shadow-2xl shadow-stone-300/50 dark:shadow-black/50 my-4 md:my-8 rounded-sm flex flex-col relative transition-colors duration-300">
+      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${showChat ? 'mr-0 md:mr-96 hidden md:block' : 'mr-0'}`}>
+        <div className="max-w-3xl mx-auto min-h-full bg-ivory dark:bg-stone-950 shadow-2xl shadow-stone-300/50 dark:shadow-black/50 my-2 md:my-8 rounded-sm flex flex-col relative transition-colors duration-300">
           
           {/* Book decoration (Binders) */}
           <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-r from-stone-300 to-transparent dark:from-stone-800 opacity-50" />
 
           {/* Page Header */}
-          <div className="px-8 md:px-16 pt-12 pb-4">
-             <span className="text-xs font-bold tracking-widest text-stone-400 dark:text-stone-600 uppercase mb-2 block">{book.title}</span>
-             <h1 className="font-serif text-4xl text-stone-900 dark:text-stone-100">{activeChapter.title}</h1>
+          <div className="px-6 md:px-16 pt-12 pb-4">
+             <span className="text-xs font-bold tracking-widest text-stone-400 dark:text-stone-600 uppercase mb-2 block truncate">{book.title}</span>
+             <h1 className="font-serif text-3xl md:text-4xl text-stone-900 dark:text-stone-100">{activeChapter.title}</h1>
           </div>
 
           {/* Page Content */}
-          <div className="flex-1 px-8 md:px-16 py-6">
+          <div className="flex-1 px-6 md:px-16 py-6">
              <div className="prose prose-lg prose-stone dark:prose-invert font-serif leading-loose text-stone-800 dark:text-stone-300 max-w-none">
                 {activeChapter.content ? (
                   activeChapter.content.split('\n').map((para, i) => (
-                    <p key={i} className="mb-6 indent-8 text-lg">{para}</p>
+                    <p key={i} className="mb-6 indent-6 md:indent-8 text-base md:text-lg">{para}</p>
                   ))
                 ) : (
                   <div className="text-stone-400 italic text-center py-12">
@@ -118,7 +119,7 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
           </div>
 
           {/* Page Footer */}
-          <div className="px-8 md:px-16 pb-8 pt-4 flex justify-between text-stone-400 dark:text-stone-600 text-xs font-mono border-t border-stone-100 dark:border-stone-800 mt-8">
+          <div className="px-6 md:px-16 pb-8 pt-4 flex justify-between text-stone-400 dark:text-stone-600 text-xs font-mono border-t border-stone-100 dark:border-stone-800 mt-8">
             <span>Page {activeChapterIndex + 1}</span>
             <span>{(activeChapter.content?.length || 0) / 500 | 0} min read</span>
           </div>
@@ -145,16 +146,16 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
       </div>
 
       {/* Top Right Controls */}
-      <div className="absolute top-4 right-6 flex flex-col gap-3 z-20">
+      <div className="absolute top-4 right-4 md:right-6 flex flex-col gap-3 z-20">
         <button 
           onClick={togglePlay}
-          className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${isPlaying ? 'bg-saffron-500 text-white' : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700'}`}
+          className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${isPlaying ? 'bg-saffron-500 text-white' : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700'}`}
         >
           {isPlaying ? <Pause size={20} /> : <Volume2 size={20} />}
         </button>
         <button 
           onClick={() => setShowChat(!showChat)}
-          className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${showChat ? 'bg-stone-800 text-white' : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700'}`}
+          className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${showChat ? 'bg-stone-800 text-white' : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700'}`}
         >
           <MessageSquare size={20} />
         </button>
@@ -168,7 +169,7 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-            className="absolute top-0 right-0 w-96 h-full bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-800 shadow-2xl z-40 flex flex-col"
+            className="absolute top-0 right-0 w-full md:w-96 h-full bg-white dark:bg-stone-900 border-l border-stone-200 dark:border-stone-800 shadow-2xl z-40 flex flex-col"
           >
             <div className="h-16 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between px-6 bg-stone-50 dark:bg-stone-900">
               <span className="font-bold text-stone-800 dark:text-stone-200 flex items-center gap-2">
