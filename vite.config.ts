@@ -19,5 +19,17 @@ export default defineConfig(({ mode }) => {
           '@': path.resolve(__dirname, '.'),
         }
       }
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['lucide-react'],
+          'pdf-vendor': ['jspdf', 'html2canvas'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
     };
 });
