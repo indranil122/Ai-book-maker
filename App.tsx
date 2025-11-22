@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppShell } from './components/AppShell';
 import { Landing } from './components/Landing';
@@ -69,7 +70,7 @@ const App: React.FC = () => {
       case ViewState.WIZARD:
         return <BookWizard onBookCreated={handleBookCreated} />;
       case ViewState.EDITOR:
-        return currentBook ? <Editor book={currentBook} onUpdateBook={handleBookUpdate} /> : <div className="p-8 text-center text-stone-500 dark:text-stone-400">Please create a book first.</div>;
+        return currentBook ? <Editor book={currentBook} onUpdateBook={handleBookUpdate} /> : <div className="p-12 text-center text-stone-500 dark:text-stone-400 font-serif italic">Please create a book first to enter the Editor.</div>;
       case ViewState.READER:
         // Library might be public or private, let's allow public view for now or mock book if no user
         return currentBook ? <Reader book={currentBook} /> : <Reader book={MOCK_BOOK} />;
@@ -90,10 +91,10 @@ const App: React.FC = () => {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentView}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.3 }}
+          initial={{ opacity: 0, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, filter: 'blur(10px)' }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
           className="w-full h-full"
         >
           {renderView()}
