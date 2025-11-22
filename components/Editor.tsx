@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Book as BookType, Chapter } from '../types';
 import { geminiService } from '../services/geminiService';
@@ -138,11 +137,11 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   };
 
   if (!book.chapters.length) {
-    return <div className="p-12 text-center">No chapters found. Please create a book first.</div>;
+    return <div className="p-12 text-center text-stone-500 dark:text-stone-400">No chapters found. Please create a book first.</div>;
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden relative">
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden relative bg-ivory dark:bg-stone-950 transition-colors duration-300">
       
       {/* Rewrite Modal */}
       <AnimatePresence>
@@ -157,20 +156,20 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-stone-100"
+              className="bg-white dark:bg-stone-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-stone-100 dark:border-stone-700"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-serif font-bold flex items-center gap-2">
+                  <h3 className="text-lg font-serif font-bold flex items-center gap-2 text-stone-900 dark:text-stone-100">
                     <Wand2 size={18} className="text-saffron-500" />
                     Rewrite Selection
                   </h3>
-                  <button onClick={() => setShowRewriteModal(false)} className="text-stone-400 hover:text-stone-600">
+                  <button onClick={() => setShowRewriteModal(false)} className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300">
                     <X size={20} />
                   </button>
                 </div>
                 
-                <div className="p-3 bg-stone-50 rounded-lg text-sm text-stone-500 italic mb-4 max-h-24 overflow-y-auto border border-stone-100">
+                <div className="p-3 bg-stone-50 dark:bg-stone-800 rounded-lg text-sm text-stone-500 dark:text-stone-400 italic mb-4 max-h-24 overflow-y-auto border border-stone-100 dark:border-stone-700">
                   "{activeChapter.content.substring(selectionRange?.start || 0, selectionRange?.end || 0)}"
                 </div>
 
@@ -181,7 +180,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                      <button 
                        key={tone}
                        onClick={() => setRewriteInstruction(tone)}
-                       className={`px-3 py-2 rounded-lg text-sm border transition-all ${rewriteInstruction === tone ? 'bg-saffron-50 border-saffron-500 text-saffron-700' : 'bg-white border-stone-200 hover:bg-stone-50'}`}
+                       className={`px-3 py-2 rounded-lg text-sm border transition-all ${rewriteInstruction === tone ? 'bg-saffron-50 dark:bg-saffron-900/30 border-saffron-500 text-saffron-700 dark:text-saffron-400' : 'bg-white dark:bg-stone-800 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700'}`}
                      >
                        {tone}
                      </button>
@@ -193,13 +192,13 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                   placeholder="Or type custom instruction..."
                   value={rewriteInstruction}
                   onChange={(e) => setRewriteInstruction(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-sm text-stone-900 dark:text-stone-100"
                 />
 
                 <button
                   onClick={handleRewrite}
                   disabled={isRewriting}
-                  className="w-full mt-6 py-3 bg-stone-900 text-white font-bold rounded-xl hover:bg-saffron-500 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full mt-6 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 font-bold rounded-xl hover:bg-saffron-500 dark:hover:bg-saffron-400 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isRewriting ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
                   {isRewriting ? 'Rewriting...' : 'Apply Changes'}
@@ -211,10 +210,10 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       </AnimatePresence>
 
       {/* Sidebar - Chapter List */}
-      <aside className="w-72 bg-stone-100 border-r border-stone-200 overflow-y-auto hidden md:block">
-        <div className="p-5 border-b border-stone-200">
+      <aside className="w-72 bg-stone-100 dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 overflow-y-auto hidden md:block transition-colors duration-300">
+        <div className="p-5 border-b border-stone-200 dark:border-stone-800">
           {/* Cover Image in Sidebar */}
-           <div className="w-full aspect-[3/4] mb-4 rounded-lg overflow-hidden shadow-md relative group bg-stone-200">
+           <div className="w-full aspect-[3/4] mb-4 rounded-lg overflow-hidden shadow-md relative group bg-stone-200 dark:bg-stone-800">
              {book.coverImage ? (
                 <img 
                   src={book.coverImage} 
@@ -241,8 +240,8 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
              </div>
            </div>
 
-          <h3 className="font-serif font-bold text-stone-900 text-lg leading-tight mb-1">{book.title}</h3>
-          <p className="text-xs text-stone-500 font-medium uppercase tracking-wider">{book.chapters.length} Chapters</p>
+          <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg leading-tight mb-1">{book.title}</h3>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-medium uppercase tracking-wider">{book.chapters.length} Chapters</p>
         </div>
         <ul className="py-2 space-y-0.5">
           {book.chapters.map((chapter, idx) => (
@@ -251,13 +250,13 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                 onClick={() => setActiveChapterIndex(idx)}
                 className={`w-full text-left px-5 py-3 text-sm transition-all border-l-4 ${
                   activeChapterIndex === idx 
-                    ? 'bg-white border-saffron-500 font-semibold text-stone-900 shadow-sm' 
-                    : 'border-transparent text-stone-600 hover:bg-stone-200/50 hover:text-stone-800'
+                    ? 'bg-white dark:bg-stone-800 border-saffron-500 font-semibold text-stone-900 dark:text-stone-100 shadow-sm' 
+                    : 'border-transparent text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 hover:text-stone-800 dark:hover:text-stone-200'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex flex-col overflow-hidden">
-                    <span className="text-xs text-stone-400 font-mono mb-0.5">Chapter {idx + 1}</span>
+                    <span className="text-xs text-stone-400 dark:text-stone-500 font-mono mb-0.5">Chapter {idx + 1}</span>
                     <span className="truncate">{chapter.title}</span>
                   </div>
                   {chapter.isGenerated && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500" title="Content Generated" />}
@@ -269,12 +268,12 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       </aside>
 
       {/* Main Editor Area */}
-      <main className="flex-1 flex flex-col bg-ivory relative">
+      <main className="flex-1 flex flex-col bg-ivory dark:bg-stone-950 relative transition-colors duration-300">
         {/* Toolbar */}
-        <div className="h-14 border-b border-stone-200 flex items-center justify-between px-6 bg-white/50 backdrop-blur-sm">
+        <div className="h-14 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between px-6 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm">
            <div className="flex items-center gap-2 overflow-hidden">
-             <h2 className="font-medium text-stone-700 truncate">
-                <span className="text-stone-400 font-normal mr-2">Editing:</span>
+             <h2 className="font-medium text-stone-700 dark:text-stone-300 truncate">
+                <span className="text-stone-400 dark:text-stone-500 font-normal mr-2">Editing:</span>
                 {activeChapter.title}
              </h2>
            </div>
@@ -287,7 +286,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                    animate={{ opacity: 1, x: 0 }}
                    exit={{ opacity: 0, x: 10 }}
                    onClick={() => setShowRewriteModal(true)}
-                   className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-ivory bg-stone-900 hover:bg-saffron-500 rounded-md transition-colors shadow-lg"
+                   className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-ivory dark:text-stone-900 bg-stone-900 dark:bg-stone-100 hover:bg-saffron-500 dark:hover:bg-saffron-400 rounded-md transition-colors shadow-lg"
                  >
                    <PenLine size={14} />
                    Rewrite Selection
@@ -295,12 +294,12 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                )}
              </AnimatePresence>
 
-             <div className="w-px h-6 bg-stone-300 mx-2" />
+             <div className="w-px h-6 bg-stone-300 dark:bg-stone-700 mx-2" />
 
              <button 
                onClick={handleExportEpub}
                disabled={isExporting}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 rounded-md transition-colors disabled:opacity-50"
+               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50"
                title="Download ePub"
              >
                 {isExporting ? <Loader2 size={14} className="animate-spin"/> : <Download size={14} />}
@@ -310,7 +309,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
              <button 
                onClick={handleExportPdf}
                disabled={isExporting}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 bg-white border border-stone-200 hover:bg-stone-50 rounded-md transition-colors disabled:opacity-50"
+               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50"
                title="Download PDF"
              >
                 {isExporting ? <Loader2 size={14} className="animate-spin"/> : <FileText size={14} />}
@@ -320,12 +319,12 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
              <button 
                onClick={generateContent}
                disabled={isGenerating}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 bg-saffron-50 hover:bg-saffron-100 rounded-md transition-colors disabled:opacity-50"
+               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50"
              >
                {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
                {activeChapter.content ? 'Rewrite Chapter' : 'Generate Content'}
              </button>
-             <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-600 hover:bg-stone-100 rounded-md transition-colors">
+             <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors">
                <Save size={14} /> Save
              </button>
            </div>
@@ -335,9 +334,9 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
         <div className="flex-1 overflow-y-auto p-8 md:p-12 relative">
           <div className="max-w-3xl mx-auto">
             {isGenerating && !activeChapter.content && (
-               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 z-10 backdrop-blur-sm">
+               <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-stone-950/80 z-10 backdrop-blur-sm">
                   <Loader2 className="animate-spin text-saffron-500 mb-3" size={32} />
-                  <p className="text-stone-500 animate-pulse font-serif text-lg">Drafting chapter content...</p>
+                  <p className="text-stone-500 dark:text-stone-400 animate-pulse font-serif text-lg">Drafting chapter content...</p>
                </div>
             )}
             <textarea
@@ -346,27 +345,27 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
               onChange={(e) => handleContentChange(e.target.value)}
               onSelect={handleSelect}
               placeholder="Start writing or click 'Generate Content' to let AI take the lead..."
-              className="w-full h-[70vh] bg-transparent border-none focus:ring-0 text-lg md:text-xl font-serif leading-loose text-stone-800 resize-none placeholder:text-stone-300 placeholder:font-sans placeholder:italic focus:outline-none selection:bg-saffron-200"
+              className="w-full h-[70vh] bg-transparent border-none focus:ring-0 text-lg md:text-xl font-serif leading-loose text-stone-800 dark:text-stone-200 resize-none placeholder:text-stone-300 dark:placeholder:text-stone-600 placeholder:font-sans placeholder:italic focus:outline-none selection:bg-saffron-200 dark:selection:bg-saffron-900/50"
             />
           </div>
         </div>
 
         {/* Footer Nav */}
-        <div className="h-12 border-t border-stone-200 flex items-center justify-between px-4 bg-stone-50 text-stone-500">
+        <div className="h-12 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 bg-stone-50 dark:bg-stone-900 text-stone-500 dark:text-stone-400">
            <button 
              disabled={activeChapterIndex === 0}
              onClick={() => setActiveChapterIndex(i => i - 1)}
-             className="flex items-center gap-1 text-sm hover:text-stone-900 disabled:opacity-30 px-2 py-1 rounded transition-colors"
+             className="flex items-center gap-1 text-sm hover:text-stone-900 dark:hover:text-stone-200 disabled:opacity-30 px-2 py-1 rounded transition-colors"
            >
              <ChevronLeft size={16} /> Previous
            </button>
-           <span className="text-xs font-mono bg-stone-200/50 px-2 py-0.5 rounded text-stone-600">
+           <span className="text-xs font-mono bg-stone-200/50 dark:bg-stone-800/50 px-2 py-0.5 rounded text-stone-600 dark:text-stone-400">
              {activeChapter.content.split(/\s+/).filter(w => w.length > 0).length} words
            </span>
            <button 
              disabled={activeChapterIndex === book.chapters.length - 1}
              onClick={() => setActiveChapterIndex(i => i + 1)}
-             className="flex items-center gap-1 text-sm hover:text-stone-900 disabled:opacity-30 px-2 py-1 rounded transition-colors"
+             className="flex items-center gap-1 text-sm hover:text-stone-900 dark:hover:text-stone-200 disabled:opacity-30 px-2 py-1 rounded transition-colors"
            >
              Next <ChevronRight size={16} />
            </button>

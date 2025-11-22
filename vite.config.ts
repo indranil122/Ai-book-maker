@@ -18,17 +18,6 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'ui-vendor': ['lucide-react'],
-          'pdf-vendor': ['jspdf'],        },
-      },
-    },
-    chunkSizeWarningLimit: 1000,
-  },
+      }
     };
 });

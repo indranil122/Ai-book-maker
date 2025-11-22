@@ -18,8 +18,8 @@ export const Explore: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-ivory pb-20">
-      <div className="bg-stone-900 text-ivory py-16 px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-ivory dark:bg-stone-950 pb-20 transition-colors duration-300">
+      <div className="bg-stone-900 dark:bg-stone-950 text-ivory py-16 px-6 relative overflow-hidden border-b border-stone-800">
          <div className="max-w-7xl mx-auto relative z-10">
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
@@ -42,12 +42,12 @@ export const Explore: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="relative h-40 rounded-xl overflow-hidden shadow-lg cursor-pointer group"
+              className="relative h-40 rounded-xl overflow-hidden shadow-lg cursor-pointer group border border-stone-800"
             >
               <img src={niche.img} alt={niche.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
               <div className={`absolute inset-0 ${niche.color} opacity-60 group-hover:opacity-40 transition-opacity`} />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-white font-serif font-bold text-xl tracking-wide">{niche.name}</span>
+                <span className="text-white font-serif font-bold text-xl tracking-wide text-shadow-lg">{niche.name}</span>
               </div>
             </motion.div>
           ))}
@@ -56,8 +56,8 @@ export const Explore: React.FC = () => {
         {/* Trending Section */}
         <div className="mb-12">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="font-serif text-3xl text-stone-800">Trending Now</h2>
-            <button className="text-saffron-600 font-medium hover:text-saffron-700">View All</button>
+            <h2 className="font-serif text-3xl text-stone-800 dark:text-stone-100">Trending Now</h2>
+            <button className="text-saffron-600 font-medium hover:text-saffron-700 dark:text-saffron-400 dark:hover:text-saffron-300">View All</button>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -67,22 +67,22 @@ export const Explore: React.FC = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-xl transition-shadow group cursor-pointer border border-stone-100"
+                className="bg-white dark:bg-stone-900 rounded-2xl p-4 shadow-sm hover:shadow-xl transition-all group cursor-pointer border border-stone-100 dark:border-stone-800"
               >
-                <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4 relative bg-stone-200">
+                <div className="aspect-[3/4] rounded-lg overflow-hidden mb-4 relative bg-stone-200 dark:bg-stone-800">
                    <img src={book.cover} alt={book.title} className="w-full h-full object-cover" />
-                   <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-sm">
+                   <div className="absolute top-2 right-2 bg-white/90 dark:bg-stone-950/90 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 text-xs font-bold shadow-sm text-stone-900 dark:text-stone-100">
                      <Star size={10} className="text-saffron-500 fill-saffron-500" />
                      4.{8 - i}
                    </div>
                 </div>
-                <h3 className="font-serif font-bold text-lg text-stone-900 leading-tight mb-1 group-hover:text-saffron-600 transition-colors">{book.title}</h3>
-                <p className="text-sm text-stone-500 mb-3">by {book.author}</p>
-                <div className="flex items-center justify-between text-xs text-stone-400 border-t border-stone-100 pt-3">
-                   <span className="bg-stone-100 px-2 py-1 rounded text-stone-600">{book.genre}</span>
+                <h3 className="font-serif font-bold text-lg text-stone-900 dark:text-stone-100 leading-tight mb-1 group-hover:text-saffron-600 dark:group-hover:text-saffron-400 transition-colors">{book.title}</h3>
+                <p className="text-sm text-stone-500 dark:text-stone-400 mb-3">by {book.author}</p>
+                <div className="flex items-center justify-between text-xs text-stone-400 dark:text-stone-500 border-t border-stone-100 dark:border-stone-800 pt-3">
+                   <span className="bg-stone-100 dark:bg-stone-800 px-2 py-1 rounded text-stone-600 dark:text-stone-300">{book.genre}</span>
                    <div className="flex gap-3">
-                     <button className="hover:text-red-500"><Heart size={14} /></button>
-                     <button className="hover:text-stone-900"><BookOpen size={14} /></button>
+                     <button className="hover:text-red-500 transition-colors"><Heart size={14} /></button>
+                     <button className="hover:text-stone-900 dark:hover:text-stone-100 transition-colors"><BookOpen size={14} /></button>
                    </div>
                 </div>
               </motion.div>

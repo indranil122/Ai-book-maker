@@ -99,12 +99,12 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
   if (status === 'generating') {
     return (
-      <div className="flex flex-col items-center justify-center h-[80vh] px-4">
+      <div className="flex flex-col items-center justify-center h-[80vh] px-4 bg-ivory dark:bg-stone-950 transition-colors duration-300">
         <div className="relative mb-8">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 border-4 border-stone-100 rounded-full"
+            className="absolute inset-0 border-4 border-stone-100 dark:border-stone-800 rounded-full"
           />
           <motion.div
             animate={{ rotate: 360 }}
@@ -117,7 +117,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
         <motion.h2
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="font-serif text-3xl font-medium text-stone-800 text-center"
+          className="font-serif text-3xl font-medium text-stone-800 dark:text-stone-100 text-center"
         >
           Creating your masterpiece
         </motion.h2>
@@ -125,7 +125,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
            key={progressStep}
            initial={{ opacity: 0, y: 5 }}
            animate={{ opacity: 1, y: 0 }}
-           className="mt-4 p-4 bg-stone-50 rounded-xl border border-stone-100 text-stone-600 font-mono text-sm shadow-sm max-w-md text-center"
+           className="mt-4 p-4 bg-stone-50 dark:bg-stone-900 rounded-xl border border-stone-100 dark:border-stone-800 text-stone-600 dark:text-stone-300 font-mono text-sm shadow-sm max-w-md text-center"
         >
           {progressStep}
         </motion.div>
@@ -135,11 +135,11 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
   if (status === 'complete' && generatedBook) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 py-8">
+      <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 py-8 bg-ivory dark:bg-stone-950 transition-colors duration-300">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-8 rounded-3xl shadow-2xl max-w-4xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start"
+          className="bg-white dark:bg-stone-900 p-8 rounded-3xl shadow-2xl max-w-4xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start border border-stone-100 dark:border-stone-800"
         >
           {/* Generated Cover */}
           <motion.div 
@@ -148,7 +148,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
             transition={{ delay: 0.2 }}
             className="w-64 md:w-80 shrink-0"
           >
-             <div className="aspect-[3/4] rounded-lg shadow-lg overflow-hidden relative bg-stone-200 group border border-stone-100">
+             <div className="aspect-[3/4] rounded-lg shadow-lg overflow-hidden relative bg-stone-200 dark:bg-stone-800 group border border-stone-100 dark:border-stone-700">
                 <img 
                   src={generatedBook.coverImage} 
                   alt={generatedBook.title}
@@ -161,26 +161,26 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
           {/* Success Details */}
           <div className="flex-1 space-y-6 text-center md:text-left w-full">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-medium mb-4">
                 <CheckCircle2 size={16} />
                 <span>Full Book Generated</span>
               </div>
-              <h2 className="font-serif text-4xl font-bold text-stone-900 mb-2">{generatedBook.title}</h2>
-              <p className="text-lg text-stone-500 font-medium">by {generatedBook.author}</p>
-              <p className="text-sm text-stone-400 mt-1">{generatedBook.chapters.reduce((acc, ch) => acc + (ch.content.split(' ').length || 0), 0)} words written</p>
+              <h2 className="font-serif text-4xl font-bold text-stone-900 dark:text-stone-50 mb-2">{generatedBook.title}</h2>
+              <p className="text-lg text-stone-500 dark:text-stone-400 font-medium">by {generatedBook.author}</p>
+              <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">{generatedBook.chapters.reduce((acc, ch) => acc + (ch.content.split(' ').length || 0), 0)} words written</p>
             </div>
 
-            <div className="bg-stone-50 rounded-xl p-6 border border-stone-100 max-h-[300px] overflow-y-auto">
-              <h3 className="font-bold text-stone-700 mb-3 text-sm uppercase tracking-wide">Table of Contents</h3>
+            <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl p-6 border border-stone-100 dark:border-stone-700 max-h-[300px] overflow-y-auto">
+              <h3 className="font-bold text-stone-700 dark:text-stone-300 mb-3 text-sm uppercase tracking-wide">Table of Contents</h3>
               <ul className="space-y-3 text-left">
                 {generatedBook.chapters.map((ch, i) => (
-                  <li key={ch.id} className="flex items-start gap-3 text-stone-600 text-sm">
+                  <li key={ch.id} className="flex items-start gap-3 text-stone-600 dark:text-stone-300 text-sm">
                     <span className="font-mono text-saffron-500 font-bold pt-0.5 shrink-0">{i + 1}.</span>
                     <span>
-                      <strong className="text-stone-800 block">{ch.title}</strong>
-                      <span className="text-stone-400 block line-clamp-1">{ch.summary}</span>
+                      <strong className="text-stone-800 dark:text-stone-200 block">{ch.title}</strong>
+                      <span className="text-stone-400 dark:text-stone-500 block line-clamp-1">{ch.summary}</span>
                     </span>
-                    {ch.isGenerated && <span className="ml-auto text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Ready</span>}
+                    {ch.isGenerated && <span className="ml-auto text-[10px] bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Ready</span>}
                   </li>
                 ))}
               </ul>
@@ -188,7 +188,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
             <button
               onClick={() => onBookCreated(generatedBook)}
-              className="w-full md:w-auto px-8 py-4 bg-stone-900 text-white text-lg font-bold rounded-xl hover:bg-saffron-500 transition-colors shadow-lg hover:shadow-saffron-500/30 flex items-center justify-center gap-2 group"
+              className="w-full md:w-auto px-8 py-4 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-lg font-bold rounded-xl hover:bg-saffron-500 dark:hover:bg-saffron-400 transition-colors shadow-lg hover:shadow-saffron-500/30 flex items-center justify-center gap-2 group"
             >
               Open Book
               <ArrowRight className="group-hover:translate-x-1 transition-transform" />
@@ -200,39 +200,39 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-12 px-4">
+    <div className="max-w-2xl mx-auto py-12 px-4 bg-ivory dark:bg-stone-950 transition-colors duration-300">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-3xl shadow-xl border border-stone-100 overflow-hidden"
+        className="bg-white dark:bg-stone-900 rounded-3xl shadow-xl border border-stone-100 dark:border-stone-800 overflow-hidden"
       >
-        <div className="bg-stone-900 p-8 text-ivory relative overflow-hidden">
+        <div className="bg-stone-900 dark:bg-stone-800 p-8 text-ivory relative overflow-hidden">
           <div className="relative z-10">
-            <h2 className="font-serif text-3xl font-bold mb-2">Create a New Book</h2>
+            <h2 className="font-serif text-3xl font-bold mb-2 text-ivory">Create a New Book</h2>
             <p className="text-stone-400">Tell us a bit about your idea, and we'll build the entire book.</p>
           </div>
-          <Sparkles className="absolute top-4 right-4 text-stone-700 opacity-20 w-32 h-32" />
+          <Sparkles className="absolute top-4 right-4 text-stone-700 dark:text-stone-600 opacity-20 w-32 h-32" />
         </div>
 
         <div className="p-8 space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-2">Working Title</label>
+            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Working Title</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="e.g., The Rose & The Dagger"
-              className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all placeholder:text-stone-400 dark:placeholder:text-stone-600"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-2">Genre</label>
+              <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Genre</label>
               <select
                 value={formData.genre}
                 onChange={(e) => handleChange('genre', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all"
               >
                 <option>Dark Romance</option>
                 <option>Science Fiction</option>
@@ -246,11 +246,11 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-stone-700 mb-2">Tone</label>
+              <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Tone</label>
               <select
                 value={formData.tone}
                 onChange={(e) => handleChange('tone', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all"
               >
                 <option>Gothic & Mysterious</option>
                 <option>Adventurous</option>
@@ -264,11 +264,11 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
           </div>
 
            <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-2">Target Audience</label>
+            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Target Audience</label>
              <select
                 value={formData.audience}
                 onChange={(e) => handleChange('audience', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all"
               >
                 <option>Adult</option>
                 <option>Young Adult</option>
@@ -278,13 +278,13 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-stone-700 mb-2">Additional Details (Premise, Characters)</label>
+            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Additional Details (Premise, Characters)</label>
             <textarea
               value={formData.prompt}
               onChange={(e) => handleChange('prompt', e.target.value)}
               placeholder="A forbidden romance between rival noble houses in a gothic city..."
               rows={4}
-              className="w-full px-4 py-3 rounded-xl bg-stone-50 border border-stone-200 focus:outline-none focus:ring-2 focus:ring-saffron-400 transition-all resize-none"
+              className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all resize-none placeholder:text-stone-400 dark:placeholder:text-stone-600"
             />
           </div>
 

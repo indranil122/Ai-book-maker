@@ -9,18 +9,18 @@ interface LandingProps {
 
 export const Landing: React.FC<LandingProps> = ({ onStart }) => {
   return (
-    <div className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center overflow-hidden px-4">
+    <div className="relative w-full min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center overflow-hidden px-4 bg-ivory dark:bg-stone-950 transition-colors duration-300">
       
       {/* Abstract Background Elements */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-saffron-400/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-stone-200/30 rounded-full blur-3xl" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-saffron-400/10 dark:bg-saffron-500/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-stone-200/30 dark:bg-stone-800/20 rounded-full blur-3xl" />
 
       <div className="z-10 max-w-4xl mx-auto text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-stone-100 border border-stone-200 text-xs font-semibold uppercase tracking-wider text-stone-600"
+          className="mb-6 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 text-xs font-semibold uppercase tracking-wider text-stone-600 dark:text-stone-400"
         >
           <Sparkles size={14} className="text-saffron-500" />
           <span>AI-Powered Publishing</span>
@@ -30,17 +30,17 @@ export const Landing: React.FC<LandingProps> = ({ onStart }) => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-          className="font-serif text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.95] text-stone-900 mb-8"
+          className="font-serif text-5xl md:text-7xl lg:text-8xl font-bold leading-[0.95] text-stone-900 dark:text-stone-50 mb-8"
         >
           Imagine. Generate. <br />
-          <span className="italic font-light text-stone-500">Publish.</span>
+          <span className="italic font-light text-stone-500 dark:text-stone-400">Publish.</span>
         </motion.h1>
 
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-lg md:text-xl text-stone-600 max-w-2xl mx-auto mb-10 font-body"
+          className="text-lg md:text-xl text-stone-600 dark:text-stone-400 max-w-2xl mx-auto mb-10 font-body"
         >
           From a single idea to a complete, published book. 
           Lumina uses advanced AI to help you write, edit, and share your stories with the world.
@@ -53,7 +53,7 @@ export const Landing: React.FC<LandingProps> = ({ onStart }) => {
         >
           <button
             onClick={onStart}
-            className="group relative inline-flex items-center gap-3 px-8 py-4 bg-stone-900 text-ivory rounded-full text-lg font-medium hover:bg-saffron-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-saffron-500/25 hover:-translate-y-1"
+            className="group relative inline-flex items-center gap-3 px-8 py-4 bg-stone-900 dark:bg-stone-100 text-ivory dark:text-stone-900 rounded-full text-lg font-medium hover:bg-saffron-500 dark:hover:bg-saffron-400 hover:text-white dark:hover:text-stone-900 transition-all duration-300 shadow-lg hover:shadow-saffron-500/25 hover:-translate-y-1"
           >
             Start Writing Now
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
@@ -73,12 +73,12 @@ export const Landing: React.FC<LandingProps> = ({ onStart }) => {
           { icon: Book, title: "Cloud Reader", desc: "Host your books with immersive reading modes and TTS." },
           { icon: Share2, title: "Global Reach", desc: "Export to ePub, PDF, or share a live web link." }
         ].map((feature, idx) => (
-          <div key={idx} className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/50 border border-stone-200/50 backdrop-blur-sm hover:bg-white transition-colors">
-            <div className="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center mb-4 text-stone-700">
+          <div key={idx} className="flex flex-col items-center text-center p-6 rounded-2xl bg-white/50 dark:bg-stone-900/50 border border-stone-200/50 dark:border-stone-800/50 backdrop-blur-sm hover:bg-white dark:hover:bg-stone-800 transition-colors">
+            <div className="w-12 h-12 bg-stone-100 dark:bg-stone-800 rounded-xl flex items-center justify-center mb-4 text-stone-700 dark:text-stone-300">
               <feature.icon size={24} />
             </div>
-            <h3 className="font-serif font-bold text-xl mb-2">{feature.title}</h3>
-            <p className="text-sm text-stone-500 leading-relaxed">{feature.desc}</p>
+            <h3 className="font-serif font-bold text-xl mb-2 text-stone-900 dark:text-stone-100">{feature.title}</h3>
+            <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">{feature.desc}</p>
           </div>
         ))}
       </motion.div>

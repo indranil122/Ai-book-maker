@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppShell } from './components/AppShell';
 import { Landing } from './components/Landing';
 import { BookWizard } from './components/BookWizard';
@@ -27,6 +26,28 @@ const MOCK_BOOK: Book = {
 const App: React.FC = () => {
   const [currentView, setView] = useState<ViewState>(ViewState.LANDING);
   const [currentBook, setCurrentBook] = useState<Book | null>(null);
+  
+  // Dark Mode State
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('lumina-theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('lumina-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('lumina-theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
   const handleStart = () => {
     setView(ViewState.WIZARD);
@@ -48,7 +69,7 @@ const App: React.FC = () => {
       case ViewState.WIZARD:
         return <BookWizard onBookCreated={handleBookCreated} />;
       case ViewState.EDITOR:
-        return currentBook ? <Editor book={currentBook} onUpdateBook={handleBookUpdate} /> : <div className="p-8 text-center">Please create a book first.</div>;
+        return currentBook ? <Editor book={currentBook} onUpdateBook={handleBookUpdate} /> : <div className="p-8 text-center text-stone-500 dark:text-stone-400">Please create a book first.</div>;
       case ViewState.READER:
         // Library might be public or private, let's allow public view for now or mock book if no user
         return currentBook ? <Reader book={currentBook} /> : <Reader book={MOCK_BOOK} />;
@@ -63,6 +84,8 @@ const App: React.FC = () => {
     <AppShell 
       currentView={currentView} 
       setView={setView} 
+      isDarkMode={isDarkMode}
+      toggleTheme={toggleTheme}
     >
       <AnimatePresence mode="wait">
         <motion.div
