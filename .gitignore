@@ -6,12 +6,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
+# Dependency directories
 node_modules
+# Build output
 dist
 dist-ssr
 *.local
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variable files (add these)
+.env
+.env.local
+.env.development
+.env.production
