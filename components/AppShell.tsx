@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { BookOpen, Compass, Moon, Sun, Menu, X, Edit3, Library } from 'lucide-react';
 import { ViewState } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import ColorBends from './ColorBends';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -11,62 +11,6 @@ interface AppShellProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
 }
-
-const AuroraBackground = () => {
-  return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-stone-900">
-      {/* Deep Base Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-stone-900 to-teal-950 opacity-100" />
-
-      {/* Aurora Wave 1: Teal/Cyan */}
-      <motion.div
-        animate={{
-          x: ["-20%", "20%", "-20%"],
-          y: ["0%", "30%", "0%"],
-          rotate: [0, 10, -10, 0],
-          scale: [1, 1.2, 1],
-        }}
-        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vh] rounded-full bg-teal-600/20 blur-[100px] mix-blend-screen"
-      />
-
-      {/* Aurora Wave 2: Deep Purple/Magenta */}
-      <motion.div
-        animate={{
-          x: ["20%", "-20%", "20%"],
-          y: ["10%", "-20%", "10%"],
-          scale: [1, 1.3, 1],
-        }}
-        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute top-[10%] right-[-10%] w-[70vw] h-[70vh] rounded-full bg-purple-600/25 blur-[120px] mix-blend-screen"
-      />
-
-      {/* Aurora Wave 3: Warm Saffron Accent */}
-      <motion.div
-        animate={{
-          x: ["-10%", "30%", "-10%"],
-          y: ["20%", "50%", "20%"],
-          opacity: [0.4, 0.7, 0.4]
-        }}
-        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
-        className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[50vh] rounded-full bg-saffron-500/15 blur-[90px] mix-blend-screen"
-      />
-
-      {/* Aurora Wave 4: Indigo Deep */}
-      <motion.div
-        animate={{
-           scale: [1, 1.1, 1],
-           opacity: [0.3, 0.5, 0.3]
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
-        className="absolute bottom-[0%] right-[0%] w-[60vw] h-[60vh] rounded-full bg-indigo-800/20 blur-[110px] mix-blend-screen"
-      />
-      
-      {/* Noise Overlay for texture */}
-      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-150 contrast-150 pointer-events-none" />
-    </div>
-  );
-};
 
 export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setView, isDarkMode, toggleTheme }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -78,7 +22,25 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
 
   return (
     <div className={`min-h-screen flex flex-col font-sans text-stone-900 dark:text-stone-100 selection:bg-saffron-400/30 transition-colors duration-500 ${isDarkMode ? 'dark' : ''}`}>
-      <AuroraBackground />
+      
+      {/* Background Shader */}
+      <div className="fixed inset-0 -z-10 overflow-hidden bg-stone-950">
+        <ColorBends
+          className="w-full h-full opacity-60"
+          colors={["#ff5c7a", "#8a5cff", "#00ffd1"]}
+          rotation={30}
+          speed={0.3}
+          scale={1.2}
+          frequency={1.4}
+          warpStrength={1.2}
+          mouseInfluence={0.8}
+          parallax={0.6}
+          noise={0.08}
+          transparent
+        />
+        {/* Noise Overlay for texture consistency */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-150 contrast-150 pointer-events-none" />
+      </div>
 
       {/* Header */}
       <header className="sticky top-0 z-50 h-20 transition-all duration-300">

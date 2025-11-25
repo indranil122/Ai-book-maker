@@ -247,7 +247,7 @@ class GeminiService {
 
   /**
    * Generates the content for a specific chapter based on its summary and previous context.
-   * Includes retry logic to prevent blank chapters.
+   * Includes robust retry logic to prevent blank chapters.
    */
   async generateChapterContent(bookTitle: string, chapter: Chapter, previousChapterSummary?: string): Promise<string> {
     if (!API_KEY) return "API Key missing. Mock content generated.";
@@ -282,16 +282,21 @@ class GeminiService {
 
             const text = response.text;
             
-            // Validation: Ensure we have actual content
-            if (text && text.length > 100) {
+            // Validation: Ensure we have actual content with sufficient length
+            if (text && text.trim().length > 300) {
                 return text;
             } else {
                 console.warn(`Attempt ${attempts + 1} returned empty or too short content.`);
-                attempts++;
             }
         } catch (error) {
             console.error(`Chapter generation failed (Attempt ${attempts + 1}):`, error);
-            attempts++;
+        }
+        
+        attempts++;
+        
+        // Add a small delay before retrying to handle potential rate limits or transient errors
+        if (attempts < maxRetries) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
         }
     }
 
