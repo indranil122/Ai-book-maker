@@ -12,53 +12,58 @@ interface AppShellProps {
   toggleTheme: () => void;
 }
 
-const MotionBackground = () => {
+const AuroraBackground = () => {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      {/* Primary Saffron Orb */}
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-stone-900">
+      {/* Deep Base Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-stone-900 to-teal-950 opacity-100" />
+
+      {/* Aurora Wave 1: Teal/Cyan */}
       <motion.div
         animate={{
-          x: [0, 100, -50, 0],
-          y: [0, -100, 50, 0],
+          x: ["-20%", "20%", "-20%"],
+          y: ["0%", "30%", "0%"],
+          rotate: [0, 10, -10, 0],
           scale: [1, 1.2, 1],
         }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] rounded-full bg-saffron-400/20 dark:bg-saffron-600/10 blur-[100px] mix-blend-multiply dark:mix-blend-soft-light"
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vh] rounded-full bg-teal-600/20 blur-[100px] mix-blend-screen"
       />
 
-      {/* Secondary Stone/Saffron Orb */}
+      {/* Aurora Wave 2: Deep Purple/Magenta */}
       <motion.div
         animate={{
-          x: [0, -100, 50, 0],
-          y: [0, 100, -50, 0],
-          scale: [1, 1.5, 1],
+          x: ["20%", "-20%", "20%"],
+          y: ["10%", "-20%", "10%"],
+          scale: [1, 1.3, 1],
         }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2
-        }}
-        className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-saffron-200/30 dark:bg-saffron-900/10 blur-[120px] mix-blend-multiply dark:mix-blend-soft-light"
+        transition={{ duration: 30, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute top-[10%] right-[-10%] w-[70vw] h-[70vh] rounded-full bg-purple-600/25 blur-[120px] mix-blend-screen"
       />
 
-      {/* Third Drifting Orb */}
+      {/* Aurora Wave 3: Warm Saffron Accent */}
       <motion.div
         animate={{
-          x: [0, 150, -100, 0],
-          y: [0, 50, 100, 0],
+          x: ["-10%", "30%", "-10%"],
+          y: ["20%", "50%", "20%"],
+          opacity: [0.4, 0.7, 0.4]
         }}
-        transition={{
-          duration: 30,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-        className="absolute top-[40%] left-[40%] w-[400px] h-[400px] rounded-full bg-stone-200/40 dark:bg-stone-800/20 blur-[80px] opacity-50"
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 5 }}
+        className="absolute bottom-[-10%] left-[20%] w-[50vw] h-[50vh] rounded-full bg-saffron-500/15 blur-[90px] mix-blend-screen"
       />
+
+      {/* Aurora Wave 4: Indigo Deep */}
+      <motion.div
+        animate={{
+           scale: [1, 1.1, 1],
+           opacity: [0.3, 0.5, 0.3]
+        }}
+        transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+        className="absolute bottom-[0%] right-[0%] w-[60vw] h-[60vh] rounded-full bg-indigo-800/20 blur-[110px] mix-blend-screen"
+      />
+      
+      {/* Noise Overlay for texture */}
+      <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-150 contrast-150 pointer-events-none" />
     </div>
   );
 };
@@ -72,14 +77,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-ivory/90 dark:bg-stone-950/90 text-stone-900 dark:text-stone-100 selection:bg-saffron-200 dark:selection:bg-saffron-900/50 transition-colors duration-500">
-      <MotionBackground />
+    <div className={`min-h-screen flex flex-col font-sans text-stone-900 dark:text-stone-100 selection:bg-saffron-400/30 transition-colors duration-500 ${isDarkMode ? 'dark' : ''}`}>
+      <AuroraBackground />
 
       {/* Header */}
       <header className="sticky top-0 z-50 h-20 transition-all duration-300">
-        <div className="absolute inset-0 bg-white/70 dark:bg-stone-950/70 backdrop-blur-xl border-b border-stone-200/50 dark:border-stone-800/50 shadow-sm" />
+        {/* Glassmorphism Header Background */}
+        <div className="absolute inset-0 bg-white/70 dark:bg-black/20 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-sm" />
         
-        <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+        <div className="relative max-w-[1920px] mx-auto px-6 h-full flex items-center justify-between">
           
           {/* Logo Section */}
           <div 
@@ -88,22 +94,22 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           >
             <motion.div 
               whileHover={{ rotate: 10, scale: 1.05 }}
-              className="w-10 h-10 bg-stone-900 dark:bg-stone-100 rounded-xl flex items-center justify-center text-ivory dark:text-stone-900 shadow-lg shadow-stone-900/10 dark:shadow-none"
+              className="w-10 h-10 bg-stone-900 dark:bg-white rounded-xl flex items-center justify-center text-white dark:text-stone-900 shadow-lg shadow-purple-500/20"
             >
               <BookOpen size={22} />
             </motion.div>
             <div className="flex flex-col -space-y-1">
-              <span className="font-serif font-bold text-2xl tracking-tight text-stone-900 dark:text-stone-100 group-hover:text-saffron-600 dark:group-hover:text-saffron-400 transition-colors duration-300">
+              <span className="font-serif font-bold text-2xl tracking-tight text-stone-900 dark:text-white group-hover:text-saffron-600 dark:group-hover:text-saffron-400 transition-colors duration-300 drop-shadow-sm">
                 Lumina
               </span>
-              <span className="text-[0.65rem] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-widest font-sans">
+              <span className="text-[0.6rem] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest font-sans opacity-80">
                 by Chatterjee House of Apps
               </span>
             </div>
           </div>
 
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1 bg-stone-100/50 dark:bg-stone-900/50 p-1.5 rounded-full border border-stone-200/50 dark:border-stone-800/50 backdrop-blur-md">
+          <nav className="hidden md:flex items-center gap-1 bg-white/40 dark:bg-black/20 p-1.5 rounded-full border border-white/20 dark:border-white/10 backdrop-blur-md shadow-lg shadow-black/5">
             {[
               { id: ViewState.EXPLORE, label: 'Explore', icon: Compass },
               { id: ViewState.WIZARD, label: 'Create', icon: Edit3 },
@@ -116,14 +122,14 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
                 className={`
                   relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2
                   ${currentView === item.id 
-                    ? 'text-stone-900 dark:text-stone-100 bg-white dark:bg-stone-800 shadow-sm' 
-                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200 hover:bg-stone-200/50 dark:hover:bg-stone-800/50'}
+                    ? 'text-stone-900 dark:text-white bg-white dark:bg-white/10 shadow-md' 
+                    : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5'}
                 `}
               >
                 {currentView === item.id && (
                   <motion.div
                     layoutId="nav-pill"
-                    className="absolute inset-0 bg-white dark:bg-stone-800 rounded-full shadow-sm -z-10"
+                    className="absolute inset-0 bg-white dark:bg-white/10 rounded-full shadow-sm -z-10"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
@@ -137,7 +143,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           <div className="flex items-center gap-3">
             <button 
               onClick={toggleTheme}
-              className="p-2.5 text-stone-500 dark:text-stone-400 hover:text-saffron-500 dark:hover:text-saffron-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-full transition-all duration-300 active:scale-95"
+              className="p-2.5 text-stone-600 dark:text-stone-300 hover:text-saffron-500 dark:hover:text-saffron-400 hover:bg-white/50 dark:hover:bg-white/10 rounded-full transition-all duration-300 active:scale-95"
               aria-label="Toggle Dark Mode"
             >
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -146,7 +152,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
             {/* Mobile Menu Toggle */}
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2.5 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
+              className="md:hidden p-2.5 text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white"
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -161,16 +167,16 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: '100vh' }}
             exit={{ opacity: 0, height: 0 }}
-            className="fixed inset-0 z-40 bg-ivory/95 dark:bg-stone-950/95 backdrop-blur-xl pt-24 px-6 md:hidden overflow-hidden"
+            className="fixed inset-0 z-40 bg-white/95 dark:bg-stone-950/95 backdrop-blur-2xl pt-24 px-6 md:hidden overflow-hidden"
           >
              <nav className="flex flex-col gap-4">
-                <button onClick={() => handleNavClick(ViewState.WIZARD)} className="flex items-center gap-4 p-4 bg-white/50 dark:bg-stone-900/50 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm active:scale-95 transition-transform">
-                  <div className="w-12 h-12 bg-saffron-100 dark:bg-saffron-900/30 text-saffron-600 dark:text-saffron-400 rounded-xl flex items-center justify-center shadow-inner">
+                <button onClick={() => handleNavClick(ViewState.WIZARD)} className="flex items-center gap-4 p-4 bg-white/50 dark:bg-white/5 rounded-2xl border border-stone-100 dark:border-stone-800 shadow-sm active:scale-95 transition-transform">
+                  <div className="w-12 h-12 bg-saffron-100 dark:bg-saffron-500/20 text-saffron-600 dark:text-saffron-400 rounded-xl flex items-center justify-center shadow-inner">
                     <Edit3 size={24} />
                   </div>
                   <div className="text-left">
-                    <span className="block font-serif font-bold text-lg text-stone-900 dark:text-stone-100">Create New Book</span>
-                    <span className="text-xs text-stone-500">Start from scratch</span>
+                    <span className="block font-serif font-bold text-lg text-stone-900 dark:text-white">Create New Book</span>
+                    <span className="text-xs text-stone-500 dark:text-stone-400">Start from scratch</span>
                   </div>
                 </button>
                 
@@ -182,7 +188,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
                   <button 
                     key={item.id}
                     onClick={() => handleNavClick(item.id)} 
-                    className="flex items-center gap-4 p-4 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-900 transition-colors text-stone-600 dark:text-stone-300 font-medium"
+                    className="flex items-center gap-4 p-4 rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-600 dark:text-stone-300 font-medium"
                   >
                      <item.icon size={24} /> {item.label}
                   </button>
@@ -191,7 +197,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
              
              <div className="absolute bottom-10 left-0 w-full px-8 text-center">
                 <div className="w-12 h-1 bg-stone-200 dark:bg-stone-800 rounded-full mx-auto mb-4" />
-                <p className="text-[0.65rem] font-bold text-stone-400 dark:text-stone-600 uppercase tracking-[0.2em]">
+                <p className="text-[0.65rem] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-[0.2em]">
                   Chatterjee House of Apps
                 </p>
              </div>
@@ -200,7 +206,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
       </AnimatePresence>
 
       {/* Main Content */}
-      <main className="flex-grow relative w-full max-w-[1920px] mx-auto">
+      <main className="flex-grow relative w-full max-w-[1920px] mx-auto transition-opacity duration-300">
         {children}
       </main>
     </div>

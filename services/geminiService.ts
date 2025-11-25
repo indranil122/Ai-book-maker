@@ -115,87 +115,62 @@ class GeminiService {
   }
 
   /**
-   * Generates a book cover image using Gemini Flash Image (Nano Banana)
+   * Generates a high-contrast, visually striking book cover.
+   * Prompts strongly for Title integration and genre-specific aesthetics.
    */
   async generateBookCover(title: string, genre: string, tone: string): Promise<string | undefined> {
     if (!API_KEY) return undefined;
 
     const model = "gemini-2.5-flash-image";
-    
     const g = genre.toLowerCase();
     const t = tone.toLowerCase();
     
-    // Sophisticated style selection for "Niche" and "Hot" market looks
-    let visualStyle = "highly detailed, cinematic lighting, award-winning digital art";
-    let element = "symbolic abstract representation";
+    // Default fallback
+    let artDirection = "Highly contrasting, cinematic lighting, 8k resolution, award-winning digital art.";
+    let typographyStyle = "Bold, readable, metallic typography.";
 
-    // 1. DARK ROMANCE (Special Niche Request)
+    // 1. DARK ROMANCE / GOTHIC
     if (g.includes('dark romance') || (g.includes('romance') && (t.includes('dark') || t.includes('gothic')))) {
-        visualStyle = "Gothic Baroque aesthetic, deep ruby and obsidian palette, velvet textures, dramatic chiaroscuro lighting, elegant, dangerous, photorealistic fantasy";
-        element = "a wilting dark rose entangled with a crown of thorns or a silver dagger on silk";
+        artDirection = "Gothic Baroque masterpiece. High Contrast. Deep obsidian shadows vs piercing ruby red highlights. Velvet textures, thorns, blood red roses, silver daggers. Dramatic Chiaroscuro lighting.";
+        typographyStyle = "Elegant, sharp serif font in Silver or Gold leaf. Title '${title}' MUST be clearly visible in center.";
     } 
-    // 2. SCI-FI / CYBERPUNK
+    // 2. CYBERPUNK / SCI-FI
     else if (g.includes('cyberpunk') || (g.includes('sci') && t.includes('neon'))) {
-        visualStyle = "Neon Noir, Blade Runner aesthetic, rain-slicked streets, chromatic aberration, pink and cyan lighting, glitch art textures";
-        element = "a silhouette of a figure with cybernetic enhancements against a neon city";
+        artDirection = "Neon Noir Cyberpunk. High Contrast. Deep midnight blues vs blinding neon pinks and cyans. Glitch art aesthetic, rain-slicked streets, chrome reflections. Blade Runner vibe.";
+        typographyStyle = "Futuristic, glitch-effect sans-serif font in glowing Neon. Title '${title}' MUST be large and legible.";
     }
-    else if (g.includes('sci-fi') || g.includes('space')) {
-      if (t.includes('dark') || t.includes('gritty')) {
-        visualStyle = "Brutalist sci-fi, HR Giger influence, monochromatic with distinct highlight, atmospheric fog, massive scale";
-        element = "a monolith floating in a void";
-      } else {
-        visualStyle = "70s Retro-Futurism, airbrush style, vibrant synthwave colors, clean lines, Moebius inspired";
-        element = "a sleek starship or distant planet horizon";
-      }
-    } 
-    // 3. FANTASY
+    // 3. HIGH FANTASY
     else if (g.includes('fantasy')) {
-      if (t.includes('whimsical') || t.includes('cozy')) {
-        visualStyle = "Studio Ghibli style, watercolor textures, soft pastoral lighting, lush greenery, enchanting atmosphere";
-        element = "a magical artifact or creature in a sunlit meadow";
-      } else if (g.includes('high') || g.includes('epic')) {
-         visualStyle = "Classic oil painting style, Frank Frazetta or Boris Vallejo influence, dramatic composition, golden age of fantasy";
-         element = "a legendary weapon glowing with ancient power";
-      } else {
-        visualStyle = "Dark fantasy concept art, heavy texture, muted earth tones, epic scale, cinematic depth of field";
-        element = "an ancient rune-covered relic";
-      }
-    } 
+       artDirection = "Ethereal High Fantasy. High Contrast. Deep forest greens vs glowing bioluminescent gold/magic. Oil painting style (Frank Frazetta meets Studio Ghibli). Epic scale, magical artifacts.";
+       typographyStyle = "Ornate, hand-lettered gold calligraphy. Title '${title}' MUST be woven into the artwork.";
+    }
     // 4. THRILLER / MYSTERY
-    else if (g.includes('mystery') || g.includes('thriller')) {
-      visualStyle = "Double exposure photography, desaturated cool tones, foggy atmosphere, cinematic suspense, minimal noir, True Detective intro style";
-      element = "a silhouette merging with a forest or cityscape";
-    } 
-    // 5. CONTEMPORARY ROMANCE
+    else if (g.includes('thriller') || g.includes('mystery')) {
+      artDirection = "Psychological Thriller. High Contrast. Stark Black and White with a single splash of Intense Red. Double exposure photography, silhouettes, fog, cinematic suspense.";
+      typographyStyle = "Bold, distressed sans-serif font. Title '${title}' MUST be huge and imposing.";
+    }
+    // 5. ROMANCE (General)
     else if (g.includes('romance')) {
-      visualStyle = "Modern vector flat art, pastel color palette, soft edges, warm golden hour lighting, trendy illustrated style (BookTok aesthetic)";
-      element = "abstract figures slightly touching or floral patterns";
-    } 
+      artDirection = "Modern Romance. High Contrast. Vibrant pastel gradients vs deep saturated accents. Vector art style, flat design, clean lines, warm golden hour lighting.";
+      typographyStyle = "Trendy, bold serif font. Title '${title}' MUST be central.";
+    }
     // 6. HORROR
     else if (g.includes('horror')) {
-      visualStyle = "Surreal gothic, scratchy texture overlay, film grain, unsettling composition, muted red and black palette, psychological horror aesthetic";
-      element = "a distorted shadow or an uncanny object in an empty room";
-    } 
-    // 7. NON-FICTION
-    else if (g.includes('business') || g.includes('non-fiction')) {
-      visualStyle = "Swiss design style, Bauhaus influence, minimalist geometric abstraction, clean typography-ready layout, solid bold colors";
-      element = "abstract 3D shapes representing growth or structure";
-    } 
-    // 8. CHILDREN
-    else if (g.includes('child')) {
-      visualStyle = "Paper cut-out style, vibrant primary colors, charming character design, storybook illustration, textured";
-      element = "a cute animal protagonist looking at a star";
+      artDirection = "Cosmic Horror. High Contrast. Deep Vantablack shadows vs sickly neon green or blood orange. Surreal, unsettling composition, scratchy textures.";
+      typographyStyle = "Jagged, scratched-in font. Title '${title}' MUST look terrifying.";
     }
 
     const prompt = `
-      Create a best-selling book cover art for a ${genre} book titled "${title}".
-      Tone: ${tone}.
+      Design a professional, best-selling book cover for: "${title}".
+      Genre: ${genre}. Tone: ${tone}.
       
-      ART STYLE: ${visualStyle}.
-      SUBJECT: ${element}.
-      COMPOSITION: Vertical aspect ratio (3:4), negative space at top for title (but do NOT add text), central focal point.
+      VISUAL STYLE: ${artDirection}
+      COLORS: Use a High Contrast color palette. Make it pop.
       
-      CRITICAL INSTRUCTION: Do NOT include any text, letters, words, title, or author name on the image. Generate pure artwork only.
+      TYPOGRAPHY INSTRUCTION: The title "${title}" MUST be written on the cover. 
+      STYLE: ${typographyStyle}
+      
+      COMPOSITION: Vertical aspect ratio (3:4). Title at top or center. Main artistic subject clearly defined.
     `;
 
     try {
@@ -211,7 +186,6 @@ class GeminiService {
         }
       });
 
-      // Iterate through parts to find the image
       if (response.candidates?.[0]?.content?.parts) {
         for (const part of response.candidates[0].content.parts) {
            if (part.inlineData && part.inlineData.mimeType.startsWith('image')) {
@@ -223,7 +197,50 @@ class GeminiService {
 
     } catch (error) {
       console.error("Cover generation failed:", error);
-      // Return undefined to allow fallback to work
+      return undefined;
+    }
+  }
+
+  /**
+   * Generates a cinematic illustration for a specific scene.
+   */
+  async generateIllustration(sceneDescription: string, genre: string): Promise<string | undefined> {
+    if (!API_KEY) return undefined;
+
+    const model = "gemini-2.5-flash-image";
+    
+    const prompt = `
+      Create a stunning, high-contrast cinematic illustration for a ${genre} story.
+      Scene Description: ${sceneDescription}
+      
+      STYLE: Cinematic, highly detailed, dramatic lighting, 8k resolution. 
+      Use rich, deep colors and strong contrast. Make it look like a movie still or concept art.
+      No text on the image.
+    `;
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: model,
+        contents: {
+          parts: [{ text: prompt }]
+        },
+        config: {
+          imageConfig: {
+            aspectRatio: "16:9" // Cinematic ratio
+          }
+        }
+      });
+
+      if (response.candidates?.[0]?.content?.parts) {
+        for (const part of response.candidates[0].content.parts) {
+           if (part.inlineData && part.inlineData.mimeType.startsWith('image')) {
+              return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+           }
+        }
+      }
+      return undefined;
+    } catch (error) {
+      console.error("Illustration generation failed:", error);
       return undefined;
     }
   }
@@ -278,7 +295,7 @@ class GeminiService {
         }
     }
 
-    return ""; // Return empty string to indicate failure, UI should handle this
+    return ""; 
   }
 
   /**

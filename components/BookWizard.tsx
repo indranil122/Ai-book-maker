@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Book, Loader2, Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Book, Sparkles, ArrowRight, CheckCircle2, ImageIcon, Wand2 } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { Book as BookType, GenerationParams, Chapter } from '../types';
 
@@ -8,10 +9,43 @@ interface BookWizardProps {
   onBookCreated: (book: BookType) => void;
 }
 
+// Confetti Component
+const ConfettiParticle = ({ delay }: { delay: number }) => (
+  <motion.div
+    initial={{ y: "0%", x: "50%", opacity: 1, scale: 0 }}
+    animate={{ 
+      y: ["0%", "120vh"], 
+      x: ["50%", `${Math.random() * 100}%`], 
+      opacity: [1, 1, 0],
+      rotate: [0, 360 * (Math.random() > 0.5 ? 1 : -1)],
+      scale: [1, 0.5]
+    }}
+    transition={{ duration: 3 + Math.random(), delay: delay, ease: "easeOut" }}
+    className="absolute top-0 w-3 h-3 rounded-full"
+    style={{
+      backgroundColor: ['#FBBF24', '#F472B6', '#60A5FA', '#34D399'][Math.floor(Math.random() * 4)],
+      left: `${Math.random() * 100}%`
+    }}
+  />
+);
+
+const Confetti = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {[...Array(50)].map((_, i) => (
+        <ConfettiParticle key={i} delay={Math.random() * 2} />
+      ))}
+    </div>
+  );
+};
+
 export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
   const [status, setStatus] = useState<'idle' | 'generating' | 'complete'>('idle');
   const [progressStep, setProgressStep] = useState<string>('');
+  const [progressPercent, setProgressPercent] = useState(0);
   const [generatedBook, setGeneratedBook] = useState<BookType | null>(null);
+  const [liveCover, setLiveCover] = useState<string | null>(null);
+  
   const [formData, setFormData] = useState<GenerationParams>({
     title: '',
     genre: 'Dark Romance',
@@ -26,17 +60,25 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
   const handleSubmit = async () => {
     setStatus('generating');
-    setProgressStep('Drafting book structure and outline...');
+    setProgressStep('Designing cover art...');
+    setProgressPercent(5);
 
     try {
-      // 1. Start Cover Generation (Background)
+      // 1. Start Cover Generation (Parallel)
+      // We don't await this immediately so we can show it when it arrives
       const coverPromise = geminiService.generateBookCover(
         formData.title,
         formData.genre,
         formData.tone
-      );
+      ).then(url => {
+        if(url) setLiveCover(url);
+        return url;
+      });
 
       // 2. Generate Structure
+      setProgressStep('Architecting story structure...');
+      setProgressPercent(15);
+      
       const partialBook = await geminiService.generateBookStructure(
         formData.title,
         formData.genre,
@@ -55,7 +97,11 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
       for (let i = 0; i < totalChapters; i++) {
         const chapter = partialBook.chapters[i];
-        setProgressStep(`Writing Chapter ${i + 1} of ${totalChapters}: "${chapter.title}"...`);
+        
+        // Update Progress
+        const percent = 20 + Math.floor(((i) / totalChapters) * 70);
+        setProgressPercent(percent);
+        setProgressStep(`Writing Chapter ${i + 1}: ${chapter.title}`);
         
         // Use previous chapter summary for continuity context
         const prevSummary = i > 0 ? partialBook.chapters[i - 1].summary : undefined;
@@ -73,7 +119,9 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
         });
       }
 
-      setProgressStep('Finalizing cover art...');
+      setProgressStep('Binding pages...');
+      setProgressPercent(95);
+      
       const coverImage = await coverPromise;
 
       const newBook: BookType = {
@@ -85,216 +133,316 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
         targetAudience: formData.audience,
         chapters: fullyWrittenChapters,
         createdAt: new Date(),
-        coverImage: coverImage || `https://picsum.photos/seed/${Date.now()}/600/900`
+        coverImage: coverImage || liveCover || `https://picsum.photos/seed/${Date.now()}/600/900`
       };
 
       setGeneratedBook(newBook);
+      setProgressPercent(100);
       setStatus('complete');
     } catch (e) {
       console.error(e);
-      alert("Failed to generate book. Please ensure you have a valid API Key configured and try again.");
+      alert("Failed to generate book. Please ensure you have a valid API Key configured.");
       setStatus('idle');
     }
   };
 
+  // Generating State
   if (status === 'generating') {
     return (
-      <div className="flex flex-col items-center justify-center h-[80vh] px-4 bg-ivory dark:bg-stone-950 transition-colors duration-300">
-        <div className="relative mb-8">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="absolute inset-0 border-4 border-stone-100 dark:border-stone-800 rounded-full"
-          />
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="text-saffron-500 relative z-10"
-          >
-            <Loader2 size={64} />
-          </motion.div>
-        </div>
-        <motion.h2
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="font-serif text-3xl font-medium text-stone-800 dark:text-stone-100 text-center"
-        >
-          Creating your masterpiece
-        </motion.h2>
-        <motion.div
-           key={progressStep}
-           initial={{ opacity: 0, y: 5 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="mt-4 p-4 bg-stone-50 dark:bg-stone-900 rounded-xl border border-stone-100 dark:border-stone-800 text-stone-600 dark:text-stone-300 font-mono text-sm shadow-sm max-w-md text-center"
-        >
-          {progressStep}
-        </motion.div>
+      <div className="flex flex-col items-center justify-center min-h-[85vh] px-4">
+         {/* Glassmorphism Card */}
+         <div className="relative w-full max-w-4xl bg-white/10 dark:bg-black/40 backdrop-blur-2xl border border-white/20 dark:border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl overflow-hidden">
+            
+            {/* Animated Background Glow */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-saffron-500/20 rounded-full blur-[100px] animate-pulse" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
+               
+               {/* Left: Cover Preview */}
+               <div className="flex-shrink-0 w-64 md:w-80">
+                  <div className="aspect-[3/4] rounded-lg shadow-2xl overflow-hidden relative bg-stone-800 border border-white/10">
+                     <AnimatePresence mode="wait">
+                       {liveCover ? (
+                         <motion.img 
+                           key="cover"
+                           initial={{ opacity: 0, scale: 1.1 }}
+                           animate={{ opacity: 1, scale: 1 }}
+                           src={liveCover} 
+                           alt="Generated Cover"
+                           className="w-full h-full object-cover"
+                         />
+                       ) : (
+                         <motion.div 
+                            key="placeholder"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="w-full h-full flex flex-col items-center justify-center text-stone-500 gap-4 p-6 text-center"
+                         >
+                            <div className="relative">
+                               <div className="absolute inset-0 bg-saffron-500/20 blur-xl rounded-full animate-pulse" />
+                               <ImageIcon size={48} className="relative z-10 text-stone-400" />
+                            </div>
+                            <span className="text-sm font-medium animate-pulse">Designing Cover...</span>
+                         </motion.div>
+                       )}
+                     </AnimatePresence>
+                     
+                     {/* Scanning Line Effect */}
+                     {!liveCover && (
+                       <motion.div 
+                         animate={{ top: ['0%', '100%'] }}
+                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                         className="absolute left-0 w-full h-1 bg-saffron-400/50 shadow-[0_0_15px_rgba(251,191,36,0.5)]"
+                       />
+                     )}
+                  </div>
+               </div>
+
+               {/* Right: Progress Ring & Text */}
+               <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left w-full">
+                  <h2 className="font-serif text-3xl md:text-4xl font-bold text-stone-900 dark:text-white mb-6">
+                    Forging your Story
+                  </h2>
+
+                  {/* Circular Progress */}
+                  <div className="relative w-24 h-24 mb-6">
+                     <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="48" cy="48" r="42" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-stone-200 dark:text-stone-800" />
+                        <motion.circle 
+                          cx="48" cy="48" r="42" 
+                          stroke="currentColor" 
+                          strokeWidth="8" 
+                          fill="transparent" 
+                          className="text-saffron-500"
+                          strokeLinecap="round"
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: progressPercent / 100 }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
+                          style={{ strokeDasharray: "1 1" }} // Normalized logic handled by pathLength
+                        />
+                     </svg>
+                     <div className="absolute inset-0 flex items-center justify-center font-mono font-bold text-stone-700 dark:text-stone-300">
+                        {progressPercent}%
+                     </div>
+                  </div>
+
+                  <motion.div
+                    key={progressStep}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-lg text-stone-600 dark:text-stone-300 font-medium"
+                  >
+                    {progressStep}
+                  </motion.div>
+                  
+                  <div className="mt-8 flex gap-2">
+                     <span className="w-2 h-2 rounded-full bg-saffron-500 animate-bounce" style={{ animationDelay: '0s'}} />
+                     <span className="w-2 h-2 rounded-full bg-saffron-500 animate-bounce" style={{ animationDelay: '0.2s'}} />
+                     <span className="w-2 h-2 rounded-full bg-saffron-500 animate-bounce" style={{ animationDelay: '0.4s'}} />
+                  </div>
+               </div>
+            </div>
+         </div>
       </div>
     );
   }
 
+  // Complete State
   if (status === 'complete' && generatedBook) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] px-4 py-8 bg-ivory dark:bg-stone-950 transition-colors duration-300">
+      <div className="flex flex-col items-center justify-center min-h-[85vh] px-4 py-8">
+        <Confetti />
+        
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white dark:bg-stone-900 p-8 rounded-3xl shadow-2xl max-w-4xl w-full flex flex-col md:flex-row gap-8 items-center md:items-start border border-stone-100 dark:border-stone-800"
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: "spring", duration: 0.8 }}
+          className="bg-white/80 dark:bg-stone-900/80 backdrop-blur-xl p-8 md:p-12 rounded-[2rem] shadow-2xl max-w-5xl w-full flex flex-col md:flex-row gap-10 items-center border border-white/40 dark:border-white/10"
         >
           {/* Generated Cover */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="w-64 md:w-80 shrink-0"
+            className="w-72 md:w-96 shrink-0 transform hover:scale-[1.02] transition-transform duration-500"
           >
-             <div className="aspect-[3/4] rounded-lg shadow-lg overflow-hidden relative bg-stone-200 dark:bg-stone-800 group border border-stone-100 dark:border-stone-700">
+             <div className="aspect-[3/4] rounded-xl shadow-2xl overflow-hidden relative bg-stone-800 ring-1 ring-white/20">
                 <img 
                   src={generatedBook.coverImage} 
                   alt={generatedBook.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
              </div>
           </motion.div>
 
           {/* Success Details */}
-          <div className="flex-1 space-y-6 text-center md:text-left w-full">
+          <div className="flex-1 space-y-8 text-center md:text-left w-full">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-sm font-medium mb-4">
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-300 rounded-full text-sm font-bold mb-6 tracking-wide uppercase"
+              >
                 <CheckCircle2 size={16} />
-                <span>Full Book Generated</span>
-              </div>
-              <h2 className="font-serif text-4xl font-bold text-stone-900 dark:text-stone-50 mb-2">{generatedBook.title}</h2>
-              <p className="text-lg text-stone-500 dark:text-stone-400 font-medium">by {generatedBook.author}</p>
-              <p className="text-sm text-stone-400 dark:text-stone-500 mt-1">{generatedBook.chapters.reduce((acc, ch) => acc + (ch.content.split(' ').length || 0), 0)} words written</p>
+                <span>Ready to Publish</span>
+              </motion.div>
+              
+              <motion.h2 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="font-serif text-5xl md:text-6xl font-bold text-stone-900 dark:text-white mb-3 leading-tight"
+              >
+                {generatedBook.title}
+              </motion.h2>
+              
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="text-xl text-stone-500 dark:text-stone-400 font-medium"
+              >
+                by {generatedBook.author}
+              </motion.p>
             </div>
 
-            <div className="bg-stone-50 dark:bg-stone-800/50 rounded-xl p-6 border border-stone-100 dark:border-stone-700 max-h-[300px] overflow-y-auto">
-              <h3 className="font-bold text-stone-700 dark:text-stone-300 mb-3 text-sm uppercase tracking-wide">Table of Contents</h3>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="bg-stone-50/50 dark:bg-black/20 rounded-2xl p-6 border border-stone-200/50 dark:border-white/5 max-h-[250px] overflow-y-auto custom-scrollbar"
+            >
+              <h3 className="font-bold text-stone-400 dark:text-stone-500 mb-4 text-xs uppercase tracking-widest">Chapter Outline</h3>
               <ul className="space-y-3 text-left">
                 {generatedBook.chapters.map((ch, i) => (
-                  <li key={ch.id} className="flex items-start gap-3 text-stone-600 dark:text-stone-300 text-sm">
-                    <span className="font-mono text-saffron-500 font-bold pt-0.5 shrink-0">{i + 1}.</span>
-                    <span>
-                      <strong className="text-stone-800 dark:text-stone-200 block">{ch.title}</strong>
-                      <span className="text-stone-400 dark:text-stone-500 block line-clamp-1">{ch.summary}</span>
-                    </span>
-                    {ch.isGenerated && <span className="ml-auto text-[10px] bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Ready</span>}
+                  <li key={ch.id} className="flex items-center gap-4 text-stone-600 dark:text-stone-300 text-sm group">
+                    <span className="font-mono text-saffron-500 font-bold opacity-70 group-hover:opacity-100">{(i + 1).toString().padStart(2, '0')}</span>
+                    <span className="font-medium truncate">{ch.title}</span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
-            <button
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
               onClick={() => onBookCreated(generatedBook)}
-              className="w-full md:w-auto px-8 py-4 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 text-lg font-bold rounded-xl hover:bg-saffron-500 dark:hover:bg-saffron-400 transition-colors shadow-lg hover:shadow-saffron-500/30 flex items-center justify-center gap-2 group"
+              className="w-full md:w-auto px-10 py-5 bg-stone-900 dark:bg-white text-white dark:text-stone-900 text-lg font-bold rounded-2xl hover:bg-saffron-500 dark:hover:bg-saffron-400 hover:text-white transition-all shadow-xl hover:shadow-saffron-500/30 flex items-center justify-center gap-3 active:scale-95"
             >
-              Open Book
-              <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </button>
+              Start Reading
+              <ArrowRight size={20} />
+            </motion.button>
           </div>
         </motion.div>
       </div>
     );
   }
 
+  // Form View
   return (
-    <div className="max-w-2xl mx-auto py-12 px-4 bg-ivory dark:bg-stone-950 transition-colors duration-300">
+    <div className="max-w-4xl mx-auto py-12 px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-stone-900 rounded-3xl shadow-xl border border-stone-100 dark:border-stone-800 overflow-hidden"
+        className="bg-white/70 dark:bg-stone-900/60 backdrop-blur-xl rounded-[2rem] shadow-2xl border border-white/50 dark:border-white/10 overflow-hidden"
       >
-        <div className="bg-stone-900 dark:bg-stone-800 p-8 text-ivory relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="font-serif text-3xl font-bold mb-2 text-ivory">Create a New Book</h2>
-            <p className="text-stone-400">Tell us a bit about your idea, and we'll build the entire book.</p>
+        <div className="bg-stone-900 dark:bg-black/40 p-10 text-white relative overflow-hidden">
+           {/* Header Art */}
+           <div className="absolute top-0 right-0 w-full h-full opacity-20 pointer-events-none">
+              <div className="absolute top-[-50%] right-[-10%] w-[500px] h-[500px] bg-purple-600 rounded-full blur-[100px]" />
+              <div className="absolute bottom-[-50%] left-[-10%] w-[500px] h-[500px] bg-teal-600 rounded-full blur-[100px]" />
+           </div>
+
+           <div className="relative z-10">
+            <h2 className="font-serif text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white to-stone-400 bg-clip-text text-transparent">
+               Create a New Book
+            </h2>
+            <p className="text-stone-300 text-lg max-w-lg leading-relaxed">
+               Describe your vision, and our AI Master Author will forge the plot, characters, and cover art instantly.
+            </p>
           </div>
-          <Sparkles className="absolute top-4 right-4 text-stone-700 dark:text-stone-600 opacity-20 w-32 h-32" />
         </div>
 
-        <div className="p-8 space-y-6">
+        <div className="p-8 md:p-10 space-y-8">
           <div>
-            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Working Title</label>
+            <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-3">Book Title</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="e.g., The Rose & The Dagger"
-              className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all placeholder:text-stone-400 dark:placeholder:text-stone-600"
+              placeholder="e.g., The Echoes of Eternity"
+              className="w-full px-6 py-4 rounded-xl bg-stone-50 dark:bg-black/30 border border-stone-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-500/50 text-xl font-serif text-stone-900 dark:text-white transition-all placeholder:text-stone-300 dark:placeholder:text-stone-700"
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Genre</label>
-              <select
-                value={formData.genre}
-                onChange={(e) => handleChange('genre', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all"
-              >
-                <option>Dark Romance</option>
-                <option>Science Fiction</option>
-                <option>Cyberpunk</option>
-                <option>High Fantasy</option>
-                <option>Cozy Mystery</option>
-                <option>Psychological Thriller</option>
-                <option>Romance</option>
-                <option>Non-Fiction / Business</option>
-                <option>Children's Book</option>
-              </select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest">Genre</label>
+              <div className="relative">
+                <select
+                  value={formData.genre}
+                  onChange={(e) => handleChange('genre', e.target.value)}
+                  className="w-full px-6 py-4 rounded-xl bg-stone-50 dark:bg-black/30 border border-stone-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-500/50 text-stone-900 dark:text-white appearance-none cursor-pointer font-medium"
+                >
+                  <option>Dark Romance</option>
+                  <option>Science Fiction</option>
+                  <option>Cyberpunk</option>
+                  <option>High Fantasy</option>
+                  <option>Cozy Mystery</option>
+                  <option>Psychological Thriller</option>
+                  <option>Romance</option>
+                  <option>Non-Fiction / Business</option>
+                  <option>Horror</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                   <ArrowRight size={16} className="rotate-90" />
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Tone</label>
-              <select
-                value={formData.tone}
-                onChange={(e) => handleChange('tone', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all"
-              >
-                <option>Gothic & Mysterious</option>
-                <option>Adventurous</option>
-                <option>Dark & Gritty</option>
-                <option>Whimsical & Cute</option>
-                <option>Humorous</option>
-                <option>Academic</option>
-                <option>Romantic & Emotional</option>
-              </select>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest">Tone</label>
+              <div className="relative">
+                <select
+                  value={formData.tone}
+                  onChange={(e) => handleChange('tone', e.target.value)}
+                  className="w-full px-6 py-4 rounded-xl bg-stone-50 dark:bg-black/30 border border-stone-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-500/50 text-stone-900 dark:text-white appearance-none cursor-pointer font-medium"
+                >
+                  <option>Gothic & Mysterious</option>
+                  <option>Adventurous & Epic</option>
+                  <option>Dark & Gritty</option>
+                  <option>Whimsical & Magical</option>
+                  <option>Witty & Humorous</option>
+                  <option>Intellectual & Academic</option>
+                  <option>Romantic & Emotional</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                   <ArrowRight size={16} className="rotate-90" />
+                </div>
+              </div>
             </div>
           </div>
 
-           <div>
-            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Target Audience</label>
-             <select
-                value={formData.audience}
-                onChange={(e) => handleChange('audience', e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all"
-              >
-                <option>Adult</option>
-                <option>Young Adult</option>
-                <option>Middle Grade</option>
-                <option>Children</option>
-              </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">Additional Details (Premise, Characters)</label>
+           <div className="space-y-3">
+            <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest">Prompt & Premise</label>
             <textarea
               value={formData.prompt}
               onChange={(e) => handleChange('prompt', e.target.value)}
-              placeholder="A forbidden romance between rival noble houses in a gothic city..."
+              placeholder="Describe the plot, characters, or specific vibes you want..."
               rows={4}
-              className="w-full px-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 focus:outline-none focus:ring-2 focus:ring-saffron-400 text-stone-900 dark:text-stone-100 transition-all resize-none placeholder:text-stone-400 dark:placeholder:text-stone-600"
+              className="w-full px-6 py-4 rounded-xl bg-stone-50 dark:bg-black/30 border border-stone-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-saffron-500/50 text-stone-900 dark:text-white transition-all resize-none placeholder:text-stone-300 dark:placeholder:text-stone-700"
             />
           </div>
 
           <button
             onClick={handleSubmit}
             disabled={!formData.title}
-            className="w-full py-4 bg-saffron-500 hover:bg-saffron-600 text-white font-bold rounded-xl shadow-lg shadow-saffron-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-2"
+            className="w-full py-5 bg-stone-900 dark:bg-white hover:bg-saffron-500 dark:hover:bg-saffron-400 text-white dark:text-stone-900 font-bold text-lg rounded-xl shadow-xl hover:shadow-saffron-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-3"
           >
-            <Sparkles size={20} />
-            Generate Full Book
+            <Sparkles size={22} className="text-saffron-400 dark:text-saffron-600" />
+            <span>Generate Masterpiece</span>
           </button>
         </div>
       </motion.div>
