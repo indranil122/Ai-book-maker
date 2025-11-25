@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Book, Sparkles, ArrowRight, CheckCircle2, ImageIcon, Wand2 } from 'lucide-react';
+import { Book, Sparkles, ArrowRight, CheckCircle2, ImageIcon, Wand2, AlertTriangle, Settings } from 'lucide-react';
 import { geminiService } from '../services/geminiService';
 import { Book as BookType, GenerationParams, Chapter } from '../types';
 
@@ -10,7 +10,7 @@ interface BookWizardProps {
 }
 
 // Confetti Component
-const ConfettiParticle = ({ delay }: { delay: number }) => (
+const ConfettiParticle: React.FC<{ delay: number }> = ({ delay }) => (
   <motion.div
     initial={{ y: "0%", x: "50%", opacity: 1, scale: 0 }}
     animate={{ 
@@ -40,7 +40,8 @@ const Confetti = () => {
 };
 
 export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
-  const [status, setStatus] = useState<'idle' | 'generating' | 'complete'>('idle');
+  const [status, setStatus] = useState<'idle' | 'generating' | 'complete' | 'error'>('idle');
+  const [errorDetails, setErrorDetails] = useState('');
   const [progressStep, setProgressStep] = useState<string>('');
   const [progressPercent, setProgressPercent] = useState(0);
   const [generatedBook, setGeneratedBook] = useState<BookType | null>(null);
@@ -60,12 +61,12 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
 
   const handleSubmit = async () => {
     setStatus('generating');
+    setErrorDetails('');
     setProgressStep('Designing cover art...');
     setProgressPercent(5);
 
     try {
       // 1. Start Cover Generation (Parallel)
-      // We don't await this immediately so we can show it when it arrives
       const coverPromise = geminiService.generateBookCover(
         formData.title,
         formData.genre,
@@ -139,12 +140,39 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
       setGeneratedBook(newBook);
       setProgressPercent(100);
       setStatus('complete');
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Failed to generate book. Please ensure you have a valid API Key configured.");
-      setStatus('idle');
+      setStatus('error');
+      
+      const msg = e.message || e.toString();
+      if (msg.includes("API_KEY_MISSING") || msg.includes("AUTH_ERROR")) {
+        setErrorDetails("Missing or invalid API Key. Please check your settings.");
+      } else if (msg.includes("QUOTA") || msg.includes("429")) {
+        setErrorDetails("Google API Quota exceeded. Please try again later or use a different key.");
+      } else {
+        setErrorDetails("Failed to generate book. Please check your internet connection.");
+      }
     }
   };
+
+  // Error State
+  if (status === 'error') {
+     return (
+        <div className="flex flex-col items-center justify-center min-h-[50vh] px-4 text-center">
+           <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-500 mb-6">
+              <AlertTriangle size={32} />
+           </div>
+           <h2 className="text-2xl font-serif font-bold text-stone-900 dark:text-white mb-2">Generation Failed</h2>
+           <p className="text-stone-500 mb-8 max-w-md">{errorDetails}</p>
+           
+           <div className="flex gap-4">
+              <button onClick={() => setStatus('idle')} className="px-6 py-2 bg-stone-200 dark:bg-stone-800 rounded-lg font-medium hover:bg-stone-300 dark:hover:bg-stone-700 transition-colors">
+                 Try Again
+              </button>
+           </div>
+        </div>
+     );
+  }
 
   // Generating State
   if (status === 'generating') {

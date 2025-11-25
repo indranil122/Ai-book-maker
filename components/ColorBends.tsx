@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -291,7 +292,7 @@ export default function ColorBends({
 
   useEffect(() => {
     const material = materialRef.current;
-    const container = containerRef.current;
+    const container: HTMLDivElement | null = containerRef.current;
     if (!material || !container) return;
 
     const handlePointerMove = (e: PointerEvent) => {

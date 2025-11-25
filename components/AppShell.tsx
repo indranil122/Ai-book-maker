@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
-import { BookOpen, Compass, Moon, Sun, Menu, X, Edit3, Library } from 'lucide-react';
+import { BookOpen, Compass, Moon, Sun, Menu, X, Edit3, Library, Settings } from 'lucide-react';
 import { ViewState } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import ColorBends from './ColorBends';
+import { SettingsModal } from './SettingsModal';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -14,6 +16,7 @@ interface AppShellProps {
 
 export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setView, isDarkMode, toggleTheme }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleNavClick = (view: ViewState) => {
     setView(view);
@@ -23,6 +26,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
   return (
     <div className={`min-h-screen flex flex-col font-sans text-stone-900 dark:text-stone-100 selection:bg-saffron-400/30 transition-colors duration-500 ${isDarkMode ? 'dark' : ''}`}>
       
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
       {/* Background Shader */}
       <div className="fixed inset-0 -z-10 overflow-hidden bg-stone-950">
         <ColorBends
@@ -104,6 +109,14 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           {/* Right Actions */}
           <div className="flex items-center gap-3">
             <button 
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2.5 text-stone-600 dark:text-stone-300 hover:text-saffron-500 dark:hover:text-saffron-400 hover:bg-white/50 dark:hover:bg-white/10 rounded-full transition-all duration-300 active:scale-95"
+              title="API Settings"
+            >
+              <Settings size={20} />
+            </button>
+
+            <button 
               onClick={toggleTheme}
               className="p-2.5 text-stone-600 dark:text-stone-300 hover:text-saffron-500 dark:hover:text-saffron-400 hover:bg-white/50 dark:hover:bg-white/10 rounded-full transition-all duration-300 active:scale-95"
               aria-label="Toggle Dark Mode"
@@ -155,6 +168,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
                      <item.icon size={24} /> {item.label}
                   </button>
                 ))}
+
+                <button 
+                  onClick={() => { setIsSettingsOpen(true); setIsMobileMenuOpen(false); }}
+                  className="flex items-center gap-4 p-4 rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-600 dark:text-stone-300 font-medium border-t border-stone-100 dark:border-stone-800 mt-2"
+                >
+                   <Settings size={24} /> Settings
+                </button>
              </nav>
              
              <div className="absolute bottom-10 left-0 w-full px-8 text-center">
