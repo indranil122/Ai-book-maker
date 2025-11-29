@@ -32,15 +32,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
       <div className="fixed inset-0 -z-10 overflow-hidden bg-stone-950">
         <ColorBends
           className="w-full h-full opacity-60"
-          colors={["#ff5c7a", "#8a5cff", "#00ffd1"]}
+          colors={["#4c1d95", "#0d9488", "#f59e0b"]}
           rotation={30}
-          speed={0.3}
+          speed={0.2}
           scale={1.2}
-          frequency={1.4}
-          warpStrength={1.2}
-          mouseInfluence={0.8}
+          frequency={1.0}
+          warpStrength={1.5}
+          mouseInfluence={0.5}
           parallax={0.6}
-          noise={0.08}
+          noise={0.15}
           transparent
         />
         {/* Noise Overlay for texture consistency */}
