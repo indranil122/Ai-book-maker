@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { BookOpen, Compass, Moon, Sun, Menu, X, Edit3, Library, Settings } from 'lucide-react';
+import { BookOpen, Moon, Sun, Menu, X, Edit3, Library, Settings } from 'lucide-react';
 import { ViewState } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import ColorBends from './ColorBends';
@@ -78,7 +78,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-1 bg-white/40 dark:bg-black/20 p-1.5 rounded-full border border-white/20 dark:border-white/10 backdrop-blur-md shadow-lg shadow-black/5">
             {[
-              { id: ViewState.EXPLORE, label: 'Explore', icon: Compass },
               { id: ViewState.WIZARD, label: 'Create', icon: Edit3 },
               { id: ViewState.EDITOR, label: 'Editor', icon: BookOpen },
               { id: ViewState.READER, label: 'Library', icon: Library },
@@ -156,7 +155,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
                 </button>
                 
                 {[
-                  { id: ViewState.EXPLORE, label: 'Explore Marketplace', icon: Compass },
                   { id: ViewState.EDITOR, label: 'Open Editor', icon: Edit3 },
                   { id: ViewState.READER, label: 'My Library', icon: Library },
                 ].map(item => (

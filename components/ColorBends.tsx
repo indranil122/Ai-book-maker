@@ -300,9 +300,9 @@ export default function ColorBends({
       pointerTargetRef.current.set(x, y);
     };
 
-    el.addEventListener('pointermove', handlePointerMove as unknown as EventListener);
+    (el as HTMLElement).addEventListener('pointermove', handlePointerMove as unknown as EventListener);
     return () => {
-      el.removeEventListener('pointermove', handlePointerMove as unknown as EventListener);
+      (el as HTMLElement).removeEventListener('pointermove', handlePointerMove as unknown as EventListener);
     };
   }, []);
 

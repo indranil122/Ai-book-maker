@@ -4,7 +4,6 @@ export enum ViewState {
   WIZARD = 'WIZARD',
   EDITOR = 'EDITOR',
   READER = 'READER',
-  EXPLORE = 'EXPLORE',
   LOGIN = 'LOGIN',
   SIGNUP = 'SIGNUP',
 }
