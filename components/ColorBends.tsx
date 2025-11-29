@@ -290,11 +290,8 @@ export default function ColorBends({
   ]);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    
-    // Explicitly casting to HTMLElement/HTMLDivElement to avoid inference issues (type never)
-    const el = container as HTMLDivElement;
+    const el = containerRef.current;
+    if (!el) return;
 
     const handlePointerMove = (e: PointerEvent) => {
       const rect = el.getBoundingClientRect();
