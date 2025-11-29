@@ -4,7 +4,7 @@ import { Book as BookType, Chapter } from '../types';
 import { geminiService } from '../services/geminiService';
 import { epubService } from '../services/epubService';
 import { pdfService } from '../services/pdfService';
-import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText, AlertTriangle, Menu, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText, AlertTriangle, Menu, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditorProps {
@@ -18,6 +18,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false); // New Focus Mode State
   
   // Rewriting state
   const [selectionRange, setSelectionRange] = useState<{start: number, end: number} | null>(null);
@@ -219,13 +220,14 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
         )}
       </AnimatePresence>
 
-      {/* Sidebar - Chapter List (Mobile Responsive) */}
+      {/* Sidebar - Chapter List (Mobile Responsive + Focus Mode Toggle) */}
       <AnimatePresence>
-        {(showMobileSidebar || window.innerWidth >= 768) && (
+        {!isFocusMode && (showMobileSidebar || window.innerWidth >= 768) && (
           <motion.aside 
-            initial={{ x: -300 }}
-            animate={{ x: 0 }}
-            exit={{ x: -300 }}
+            initial={{ x: -300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -300, opacity: 0 }}
+            transition={{ duration: 0.3 }}
             className={`
               absolute md:static inset-y-0 left-0 z-30 w-72 
               bg-stone-100 dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 
@@ -300,69 +302,106 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
 
       {/* Main Editor Area */}
       <main className="flex-1 flex flex-col bg-ivory dark:bg-stone-950 relative transition-colors duration-300 w-full">
-        {/* Toolbar */}
-        <div className="h-14 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 md:px-6 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm">
-           <div className="flex items-center gap-2 overflow-hidden">
-             <button onClick={() => setShowMobileSidebar(true)} className="md:hidden p-1 text-stone-500 mr-2">
-               <PanelLeftOpen size={20} />
-             </button>
-             <h2 className="font-medium text-stone-700 dark:text-stone-300 truncate max-w-[150px] md:max-w-none">
-                <span className="text-stone-400 dark:text-stone-500 font-normal mr-2 hidden sm:inline">Editing:</span>
-                {activeChapter.title}
-             </h2>
-           </div>
-           <div className="flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
-             {/* Rewrite Button (Only visible when selecting) */}
-             <AnimatePresence>
-               {selectionRange && (
-                 <motion.button
-                   initial={{ opacity: 0, x: 10 }}
-                   animate={{ opacity: 1, x: 0 }}
-                   exit={{ opacity: 0, x: 10 }}
-                   onClick={() => setShowRewriteModal(true)}
-                   className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-ivory dark:text-stone-900 bg-stone-900 dark:bg-stone-100 hover:bg-saffron-500 dark:hover:bg-saffron-400 rounded-md transition-colors shadow-lg whitespace-nowrap"
-                 >
-                   <PenLine size={14} />
-                   <span className="hidden sm:inline">Rewrite</span>
-                 </motion.button>
-               )}
-             </AnimatePresence>
+        
+        {/* Floating Focus Mode Toggle (Visible when in Focus Mode) */}
+        <AnimatePresence>
+            {isFocusMode && (
+                <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    whileHover={{ opacity: 1 }}
+                    onClick={() => setIsFocusMode(false)}
+                    className="absolute top-4 right-4 z-40 p-2 bg-stone-900/10 dark:bg-white/10 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-white rounded-full transition-all"
+                    title="Exit Focus Mode"
+                >
+                    <Minimize2 size={24} />
+                </motion.button>
+            )}
+        </AnimatePresence>
 
-             <div className="w-px h-6 bg-stone-300 dark:bg-stone-700 mx-2 hidden sm:block" />
+        {/* Toolbar (Hidden in Focus Mode) */}
+        <AnimatePresence>
+            {!isFocusMode && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="h-14 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 md:px-6 bg-white/50 dark:bg-stone-900/50 backdrop-blur-sm"
+                >
+                <div className="flex items-center gap-2 overflow-hidden">
+                    <button onClick={() => setShowMobileSidebar(true)} className="md:hidden p-1 text-stone-500 mr-2">
+                    <PanelLeftOpen size={20} />
+                    </button>
+                    <h2 className="font-medium text-stone-700 dark:text-stone-300 truncate max-w-[150px] md:max-w-none">
+                        <span className="text-stone-400 dark:text-stone-500 font-normal mr-2 hidden sm:inline">Editing:</span>
+                        {activeChapter.title}
+                    </h2>
+                </div>
+                <div className="flex items-center gap-2 shrink-0 overflow-x-auto no-scrollbar">
+                    {/* Focus Mode Button */}
+                    <button 
+                        onClick={() => setIsFocusMode(true)}
+                        className="p-1.5 text-stone-500 hover:text-stone-900 dark:hover:text-white hover:bg-stone-100 dark:hover:bg-stone-800 rounded-md transition-colors"
+                        title="Focus Mode"
+                    >
+                        <Maximize2 size={18} />
+                    </button>
 
-             <button 
-               onClick={handleExportEpub}
-               disabled={isExporting || isChapterEmpty}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
-               title="Download ePub"
-             >
-                {isExporting ? <Loader2 size={14} className="animate-spin"/> : <Download size={14} />}
-                <span className="hidden sm:inline">ePub</span>
-             </button>
+                    <div className="w-px h-6 bg-stone-300 dark:bg-stone-700 mx-2 hidden sm:block" />
 
-             <button 
-               onClick={handleExportPdf}
-               disabled={isExporting || isChapterEmpty}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
-               title="Download PDF"
-             >
-                {isExporting ? <Loader2 size={14} className="animate-spin"/> : <FileText size={14} />}
-                <span className="hidden sm:inline">PDF</span>
-             </button>
+                    {/* Rewrite Button (Only visible when selecting) */}
+                    <AnimatePresence>
+                    {selectionRange && (
+                        <motion.button
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        onClick={() => setShowRewriteModal(true)}
+                        className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-ivory dark:text-stone-900 bg-stone-900 dark:bg-stone-100 hover:bg-saffron-500 dark:hover:bg-saffron-400 rounded-md transition-colors shadow-lg whitespace-nowrap"
+                        >
+                        <PenLine size={14} />
+                        <span className="hidden sm:inline">Rewrite</span>
+                        </motion.button>
+                    )}
+                    </AnimatePresence>
 
-             <button 
-               onClick={generateContent}
-               disabled={isGenerating}
-               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
-             >
-               {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-               <span className="hidden sm:inline">{isChapterEmpty ? 'Generate' : 'Re-Gen'}</span>
-             </button>
-           </div>
-        </div>
+                    <div className="w-px h-6 bg-stone-300 dark:bg-stone-700 mx-2 hidden sm:block" />
+
+                    <button 
+                    onClick={handleExportEpub}
+                    disabled={isExporting || isChapterEmpty}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
+                    title="Download ePub"
+                    >
+                        {isExporting ? <Loader2 size={14} className="animate-spin"/> : <Download size={14} />}
+                        <span className="hidden sm:inline">ePub</span>
+                    </button>
+
+                    <button 
+                    onClick={handleExportPdf}
+                    disabled={isExporting || isChapterEmpty}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
+                    title="Download PDF"
+                    >
+                        {isExporting ? <Loader2 size={14} className="animate-spin"/> : <FileText size={14} />}
+                        <span className="hidden sm:inline">PDF</span>
+                    </button>
+
+                    <button 
+                    onClick={generateContent}
+                    disabled={isGenerating}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
+                    >
+                    {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                    <span className="hidden sm:inline">{isChapterEmpty ? 'Generate' : 'Re-Gen'}</span>
+                    </button>
+                </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
 
         {/* Editor Input */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-12 relative">
+        <div className={`flex-1 overflow-y-auto p-4 md:p-12 relative transition-all duration-500 ${isFocusMode ? 'max-w-4xl mx-auto w-full' : ''}`}>
           <div className="max-w-3xl mx-auto min-h-full">
             {isGenerating && (
                <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-stone-950/80 z-10 backdrop-blur-sm transition-opacity rounded-xl">
@@ -401,26 +440,35 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
           </div>
         </div>
 
-        {/* Footer Nav */}
-        <div className="h-12 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 bg-stone-50 dark:bg-stone-900 text-stone-500 dark:text-stone-400">
-           <button 
-             disabled={activeChapterIndex === 0}
-             onClick={() => setActiveChapterIndex(i => i - 1)}
-             className="flex items-center gap-1 text-sm hover:text-stone-900 dark:hover:text-stone-200 disabled:opacity-30 px-2 py-1 rounded transition-colors"
-           >
-             <ChevronLeft size={16} /> Previous
-           </button>
-           <span className="text-xs font-mono bg-stone-200/50 dark:bg-stone-800/50 px-2 py-0.5 rounded text-stone-600 dark:text-stone-400">
-             {activeChapter.content ? activeChapter.content.split(/\s+/).filter(w => w.length > 0).length : 0} words
-           </span>
-           <button 
-             disabled={activeChapterIndex === book.chapters.length - 1}
-             onClick={() => setActiveChapterIndex(i => i + 1)}
-             className="flex items-center gap-1 text-sm hover:text-stone-900 dark:hover:text-stone-200 disabled:opacity-30 px-2 py-1 rounded transition-colors"
-           >
-             Next <ChevronRight size={16} />
-           </button>
-        </div>
+        {/* Footer Nav (Hidden in Focus Mode) */}
+        <AnimatePresence>
+            {!isFocusMode && (
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="h-12 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 bg-stone-50 dark:bg-stone-900 text-stone-500 dark:text-stone-400"
+                >
+                <button 
+                    disabled={activeChapterIndex === 0}
+                    onClick={() => setActiveChapterIndex(i => i - 1)}
+                    className="flex items-center gap-1 text-sm hover:text-stone-900 dark:hover:text-stone-200 disabled:opacity-30 px-2 py-1 rounded transition-colors"
+                >
+                    <ChevronLeft size={16} /> Previous
+                </button>
+                <span className="text-xs font-mono bg-stone-200/50 dark:bg-stone-800/50 px-2 py-0.5 rounded text-stone-600 dark:text-stone-400">
+                    {activeChapter.content ? activeChapter.content.split(/\s+/).filter(w => w.length > 0).length : 0} words
+                </span>
+                <button 
+                    disabled={activeChapterIndex === book.chapters.length - 1}
+                    onClick={() => setActiveChapterIndex(i => i + 1)}
+                    className="flex items-center gap-1 text-sm hover:text-stone-900 dark:hover:text-stone-200 disabled:opacity-30 px-2 py-1 rounded transition-colors"
+                >
+                    Next <ChevronRight size={16} />
+                </button>
+                </motion.div>
+            )}
+        </AnimatePresence>
       </main>
     </div>
   );
