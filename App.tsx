@@ -21,6 +21,10 @@ const MOCK_BOOK: Book = {
   chapters: [
     { id: 'c1', title: 'Awakening', summary: 'The protagonist wakes up in a cryo-pod.', content: "The hiss of the cryo-seal breaking was the first sound in a century. Cold vapor poured out, kissing the floor like a phantom fog. Kael gasped, his lungs burning as they reinflated with stale, recycled air. \n\n'System report,' he croaked, his voice unfamiliar to his own ears. \n\nNo answer. Just the hum of the ship's dying reactor. He pulled himself over the edge of the pod, his muscles trembling like overstressed cables. The bridge was dark, save for the emergency strobes pulsating in a rhythmic red warning. \n\nHe was alone. Or at least, he hoped he was.", isGenerated: true },
     { id: 'c2', title: 'The Signal', summary: 'A distress beacon is found.', content: '', isGenerated: false }
+  ],
+  characters: [
+    { name: 'Kael', role: 'Protagonist', description: 'A former starship commander awakened from cryo-sleep into a dead universe. He is resourceful but haunted by the past.' },
+    { name: 'System', role: 'AI', description: 'The ship’s malfunctioning artificial intelligence, prone to cryptic errors and glitches.' }
   ]
 };
 

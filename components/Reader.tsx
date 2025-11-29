@@ -1,8 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Book as BookType, ChatMessage } from '../types';
+import { Book as BookType, ChatMessage, Character } from '../types';
 import { geminiService } from '../services/geminiService';
-import { Play, Pause, MessageSquare, X, Send, Volume2, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Pause, MessageSquare, X, Send, Volume2, Settings, ChevronLeft, ChevronRight, User, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ReaderProps {
@@ -16,8 +16,13 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  
+  // Character Interaction State
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
 
-  // TTS Refs
+  // TTS State
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
   const synthesisRef = useRef<SpeechSynthesis | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
@@ -25,6 +30,29 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
 
   useEffect(() => {
     synthesisRef.current = window.speechSynthesis;
+    
+    const loadVoices = () => {
+      const available = window.speechSynthesis.getVoices();
+      setVoices(available);
+      
+      // Smart selection: Prioritize "Google US English", "Microsoft Zira", or other premium-sounding voices
+      const preferred = available.find(v => v.name === 'Google US English') 
+                     || available.find(v => v.name.includes('Google') && v.lang.startsWith('en'))
+                     || available.find(v => v.name.includes('Zira') && v.lang.startsWith('en'))
+                     || available.find(v => v.name.includes('Samantha'))
+                     || available.find(v => v.lang === 'en-US')
+                     || available.find(v => v.lang.startsWith('en'));
+      
+      if (preferred) {
+        setSelectedVoice(preferred);
+      }
+    };
+
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
     return () => {
       if (synthesisRef.current) {
         synthesisRef.current.cancel();
@@ -42,14 +70,29 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
       if (synthesisRef.current.paused) {
         synthesisRef.current.resume();
       } else {
-        // Start new
+        // Start new utterance
         synthesisRef.current.cancel();
-        const text = activeChapter.content || activeChapter.summary;
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.9; // Slightly slower for reading
-        utterance.pitch = 1.0;
+        
+        // Use content if available, otherwise summary
+        const textToRead = activeChapter.content && activeChapter.content.length > 50 
+          ? activeChapter.content 
+          : activeChapter.summary;
+
+        const utterance = new SpeechSynthesisUtterance(textToRead);
+        
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        }
+        
+        // Tuning for more natural audiobook style
+        utterance.rate = 0.95; // Slightly measured pace
+        utterance.pitch = 1.05; // Slightly brighter tone for clarity
         
         utterance.onend = () => setIsPlaying(false);
+        utterance.onerror = (e) => {
+            console.error("TTS Error:", e);
+            setIsPlaying(false);
+        };
         
         utteranceRef.current = utterance;
         synthesisRef.current.speak(utterance);
@@ -83,6 +126,42 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
     }
   };
 
+  const escapeRegExp = (string: string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // Helper to render text with interactive character highlights
+  const renderInteractiveText = (text: string) => {
+    if (!book.characters || book.characters.length === 0) return text;
+
+    // Create a regex pattern for all names, sorted by length to match longest first
+    const sortedNames = [...book.characters].sort((a, b) => b.name.length - a.name.length);
+    // Simple word boundary check to avoid partial matches inside words
+    const pattern = new RegExp(`\\b(${sortedNames.map(c => escapeRegExp(c.name)).join('|')})\\b`, 'gi');
+
+    const parts = text.split(pattern);
+
+    return parts.map((part, i) => {
+      const character = book.characters.find(c => c.name.toLowerCase() === part.toLowerCase());
+      if (character) {
+         return (
+           <span
+             key={i}
+             onClick={(e) => {
+               e.stopPropagation();
+               setSelectedCharacter(character);
+             }}
+             className="text-saffron-600 dark:text-saffron-400 font-semibold cursor-pointer border-b border-dashed border-saffron-400/50 hover:bg-saffron-100 dark:hover:bg-saffron-900/30 transition-colors"
+             title={`Click to view profile: ${character.role}`}
+           >
+             {part}
+           </span>
+         );
+      }
+      return part;
+    });
+  };
+
   if (!book.chapters.length) {
      return <div className="p-12 text-center text-stone-500 dark:text-stone-400">The library is empty. Create a book first.</div>;
   }
@@ -90,6 +169,48 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-stone-100 dark:bg-stone-900 relative overflow-hidden transition-colors duration-300">
       
+      {/* Character Bio Modal */}
+      <AnimatePresence>
+        {selectedCharacter && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            onClick={() => setSelectedCharacter(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-stone-900 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-stone-100 dark:border-stone-800 relative overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-saffron-400/20 to-stone-200/20 dark:to-stone-800/20" />
+              
+              <div className="relative flex flex-col items-center text-center mt-4">
+                 <div className="w-20 h-20 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-400 shadow-lg border-4 border-white dark:border-stone-900 mb-4">
+                    <User size={40} />
+                 </div>
+                 <h3 className="font-serif font-bold text-2xl text-stone-900 dark:text-white mb-1">{selectedCharacter.name}</h3>
+                 <span className="text-xs font-bold uppercase tracking-widest text-saffron-600 dark:text-saffron-400 mb-4 bg-saffron-50 dark:bg-saffron-900/20 px-3 py-1 rounded-full">
+                    {selectedCharacter.role}
+                 </span>
+                 <p className="text-stone-600 dark:text-stone-300 leading-relaxed text-sm">
+                    {selectedCharacter.description}
+                 </p>
+              </div>
+              <button 
+                onClick={() => setSelectedCharacter(null)}
+                className="absolute top-4 right-4 text-stone-400 hover:text-stone-800 dark:hover:text-stone-200"
+              >
+                <X size={20} />
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Reader Container */}
       <div className={`flex-1 overflow-y-auto transition-all duration-300 ${showChat ? 'mr-0 md:mr-96 hidden md:block' : 'mr-0'}`}>
         <div className="max-w-3xl mx-auto min-h-full bg-ivory dark:bg-stone-950 shadow-2xl shadow-stone-300/50 dark:shadow-black/50 my-2 md:my-8 rounded-sm flex flex-col relative transition-colors duration-300">
@@ -108,7 +229,9 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
              <div className="prose prose-lg prose-stone dark:prose-invert font-serif leading-loose text-stone-800 dark:text-stone-300 max-w-none">
                 {activeChapter.content ? (
                   activeChapter.content.split('\n').map((para, i) => (
-                    <p key={i} className="mb-6 indent-6 md:indent-8 text-base md:text-lg">{para}</p>
+                    <p key={i} className="mb-6 indent-6 md:indent-8 text-base md:text-lg">
+                      {renderInteractiveText(para)}
+                    </p>
                   ))
                 ) : (
                   <div className="text-stone-400 italic text-center py-12">
@@ -150,6 +273,7 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
         <button 
           onClick={togglePlay}
           className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${isPlaying ? 'bg-saffron-500 text-white' : 'bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-700'}`}
+          title={selectedVoice ? `Read with ${selectedVoice.name}` : 'Read Aloud'}
         >
           {isPlaying ? <Pause size={20} /> : <Volume2 size={20} />}
         </button>

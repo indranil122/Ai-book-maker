@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
@@ -291,20 +290,22 @@ export default function ColorBends({
   ]);
 
   useEffect(() => {
-    const material = materialRef.current;
-    const container: HTMLDivElement | null = containerRef.current;
-    if (!material || !container) return;
+    const container = containerRef.current;
+    if (!container) return;
+    
+    // Explicitly casting to HTMLElement/HTMLDivElement to avoid inference issues (type never)
+    const el = container as HTMLDivElement;
 
     const handlePointerMove = (e: PointerEvent) => {
-      const rect = container.getBoundingClientRect();
+      const rect = el.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / (rect.width || 1)) * 2 - 1;
       const y = -(((e.clientY - rect.top) / (rect.height || 1)) * 2 - 1);
       pointerTargetRef.current.set(x, y);
     };
 
-    container.addEventListener('pointermove', handlePointerMove as EventListener);
+    el.addEventListener('pointermove', handlePointerMove as unknown as EventListener);
     return () => {
-      container.removeEventListener('pointermove', handlePointerMove as EventListener);
+      el.removeEventListener('pointermove', handlePointerMove as unknown as EventListener);
     };
   }, []);
 

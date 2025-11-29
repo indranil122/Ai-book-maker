@@ -1,12 +1,13 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Chapter, Book } from "../types";
+import { Chapter, Book, Character } from "../types";
 import { getApiKey } from "../config";
 
 class GeminiService {
   
   private getClient(): GoogleGenAI {
-    const apiKey = getApiKey();
+    // Prioritize user-configured key, then env var
+    const apiKey = getApiKey() || process.env.API_KEY;
     if (!apiKey) {
       throw new Error("API_KEY_MISSING");
     }
@@ -66,7 +67,7 @@ class GeminiService {
   }
 
   /**
-   * Generates the book structure (Title, Chapters, Summaries)
+   * Generates the book structure (Title, Chapters, Summaries, Characters)
    */
   async generateBookStructure(title: string, genre: string, tone: string, audience: string, additionalPrompt: string): Promise<Partial<Book>> {
     return this.withRetry(async () => {
@@ -80,8 +81,11 @@ class GeminiService {
         Target Audience: ${audience}.
         Additional Context: ${additionalPrompt}.
         
-        Generate a JSON response with the book title (feel free to improve it), a creative author name, and a list of 8-12 chapters.
-        Each chapter must have a title and a compelling plot summary (2-3 sentences).
+        Generate a JSON response with:
+        1. The book title (feel free to improve it).
+        2. A creative author name.
+        3. A list of 8-12 chapters. Each chapter must have a title and a compelling plot summary (2-3 sentences).
+        4. A list of 3-5 main characters. Each character must have a name, role (e.g., Protagonist, Antagonist), and a brief description.
       `;
 
       const response = await ai.models.generateContent({
@@ -106,8 +110,20 @@ class GeminiService {
                   required: ["title", "summary"],
                 },
               },
+              characters: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    name: { type: Type.STRING },
+                    role: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                  },
+                  required: ["name", "role", "description"],
+                },
+              },
             },
-            required: ["title", "author", "chapters"],
+            required: ["title", "author", "chapters", "characters"],
           },
         },
       });
@@ -134,6 +150,7 @@ class GeminiService {
         title: data.title,
         author: data.author,
         chapters: chapters,
+        characters: data.characters || [],
       };
     });
   }
@@ -182,6 +199,16 @@ class GeminiService {
         else if (g.includes('horror')) {
           artDirection = "Cosmic Horror. High Contrast. Deep Vantablack shadows vs sickly neon green or blood orange. Surreal, unsettling composition, scratchy textures.";
           typographyStyle = "Jagged, scratched-in font. Title '${title}' MUST look terrifying.";
+        }
+        // 7. HISTORICAL FICTION
+        else if (g.includes('historical')) {
+          artDirection = "Historical Epic. High Contrast. Oil painting style (19th century academy art). Rich earth tones, period clothing, dramatic lighting.";
+          typographyStyle = "Classic serif font, elegant and timeless. Title '${title}' MUST be central.";
+        }
+        // 8. YOUNG ADULT
+        else if (g.includes('young adult') || g.includes('ya')) {
+          artDirection = "Young Adult Best Seller. High Contrast. Bold, vector illustration or stylized photography. Vibrant colors, symbolic imagery.";
+          typographyStyle = "Large, modern typography, possibly hand-written style. Title '${title}' MUST be the focal point.";
         }
 
         const prompt = `

@@ -16,6 +16,12 @@ export interface User {
   avatar: string;
 }
 
+export interface Character {
+  name: string;
+  role: string;
+  description: string;
+}
+
 export interface Chapter {
   id: string;
   title: string;
@@ -33,6 +39,7 @@ export interface Book {
   targetAudience: string;
   coverImage?: string; // URL
   chapters: Chapter[];
+  characters: Character[];
   createdAt: Date;
 }
 

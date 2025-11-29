@@ -133,6 +133,7 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
         tone: formData.tone,
         targetAudience: formData.audience,
         chapters: fullyWrittenChapters,
+        characters: partialBook.characters || [],
         createdAt: new Date(),
         coverImage: coverImage || liveCover || `https://picsum.photos/seed/${Date.now()}/600/900`
       };
@@ -210,7 +211,10 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
                                <div className="absolute inset-0 bg-saffron-500/20 blur-xl rounded-full animate-pulse" />
                                <ImageIcon size={48} className="relative z-10 text-stone-400" />
                             </div>
-                            <span className="text-sm font-medium animate-pulse">Designing Cover...</span>
+                            <div className="flex flex-col gap-1">
+                                <span className="text-sm font-medium animate-pulse text-stone-300">Designing Cover...</span>
+                                <span className="text-xs font-serif text-stone-500 line-clamp-2 px-2">"{formData.title}"</span>
+                            </div>
                          </motion.div>
                        )}
                      </AnimatePresence>
@@ -423,6 +427,8 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
                   <option>Romance</option>
                   <option>Non-Fiction / Business</option>
                   <option>Horror</option>
+                  <option>Historical Fiction</option>
+                  <option>Young Adult</option>
                 </select>
                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
                    <ArrowRight size={16} className="rotate-90" />
