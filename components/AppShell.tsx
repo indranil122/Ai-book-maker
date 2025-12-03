@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { BookOpen, Moon, Sun, Menu, X, Edit3, Library, Settings } from 'lucide-react';
 import { ViewState } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { NebulaBackground } from './NebulaBackground';
+import ShaderBackground from './ColorBends';
 import { SettingsModal } from './SettingsModal';
 
 interface AppShellProps {
@@ -28,8 +27,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
       
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
-      {/* New Nebula Background */}
-      <NebulaBackground />
+      <ShaderBackground isDarkMode={isDarkMode} />
 
       {/* Header */}
       <header className="sticky top-0 z-50 h-20 transition-all duration-300">
