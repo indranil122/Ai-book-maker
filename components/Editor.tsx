@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Book as BookType, Chapter } from '../types';
 import { geminiService } from '../services/geminiService';
@@ -152,7 +151,8 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   const isChapterEmpty = !activeChapter.content || activeChapter.content.trim().length < 50;
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden relative bg-ivory dark:bg-stone-950 transition-colors duration-300">
+    // Use semi-transparent background to show nebula
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden relative bg-white/50 dark:bg-stone-950/50 backdrop-blur-xl transition-colors duration-300">
       
       {/* Rewrite Modal */}
       <AnimatePresence>
@@ -230,7 +230,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
             transition={{ duration: 0.3 }}
             className={`
               absolute md:static inset-y-0 left-0 z-30 w-72 
-              bg-stone-100 dark:bg-stone-900 border-r border-stone-200 dark:border-stone-800 
+              bg-white/70 dark:bg-stone-900/80 backdrop-blur-md border-r border-stone-200/50 dark:border-stone-800/50 
               overflow-y-auto transition-colors duration-300 shadow-2xl md:shadow-none
               ${!showMobileSidebar ? 'hidden md:block' : 'block'}
             `}
@@ -281,7 +281,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                     }}
                     className={`w-full text-left px-5 py-3 text-sm transition-all border-l-4 ${
                       activeChapterIndex === idx 
-                        ? 'bg-white dark:bg-stone-800 border-saffron-500 font-semibold text-stone-900 dark:text-stone-100 shadow-sm' 
+                        ? 'bg-white/80 dark:bg-stone-800/80 border-saffron-500 font-semibold text-stone-900 dark:text-stone-100 shadow-sm' 
                         : 'border-transparent text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 hover:text-stone-800 dark:hover:text-stone-200'
                     }`}
                   >
@@ -301,7 +301,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       </AnimatePresence>
 
       {/* Main Editor Area */}
-      <main className="flex-1 flex flex-col bg-ivory dark:bg-stone-950 relative transition-colors duration-300 w-full">
+      <main className="flex-1 flex flex-col bg-transparent relative transition-colors duration-300 w-full">
         
         {/* Floating Focus Mode Toggle (Visible when in Focus Mode) */}
         <AnimatePresence>
@@ -370,7 +370,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                     <button 
                     onClick={handleExportEpub}
                     disabled={isExporting || isChapterEmpty}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
                     title="Download ePub"
                     >
                         {isExporting ? <Loader2 size={14} className="animate-spin"/> : <Download size={14} />}
@@ -380,7 +380,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                     <button 
                     onClick={handleExportPdf}
                     disabled={isExporting || isChapterEmpty}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-stone-700 dark:text-stone-300 bg-white/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-700 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
                     title="Download PDF"
                     >
                         {isExporting ? <Loader2 size={14} className="animate-spin"/> : <FileText size={14} />}
@@ -390,7 +390,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                     <button 
                     onClick={generateContent}
                     disabled={isGenerating}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-saffron-700 dark:text-saffron-400 bg-saffron-50/50 dark:bg-saffron-900/20 hover:bg-saffron-100 dark:hover:bg-saffron-900/40 rounded-md transition-colors disabled:opacity-50 whitespace-nowrap"
                     >
                     {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
                     <span className="hidden sm:inline">{isChapterEmpty ? 'Generate' : 'Re-Gen'}</span>
@@ -411,7 +411,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
             )}
             
             {isChapterEmpty && !isGenerating ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8 border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl">
+              <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8 border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-xl bg-white/40 dark:bg-stone-900/40 backdrop-blur-sm">
                  <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mb-4 text-stone-400">
                     <AlertTriangle size={28} />
                  </div>
@@ -447,7 +447,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
-                    className="h-12 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 bg-stone-50 dark:bg-stone-900 text-stone-500 dark:text-stone-400"
+                    className="h-12 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between px-4 bg-white/70 dark:bg-stone-900/80 backdrop-blur-md text-stone-500 dark:text-stone-400"
                 >
                 <button 
                     disabled={activeChapterIndex === 0}

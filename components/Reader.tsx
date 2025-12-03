@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Book as BookType, ChatMessage, Character } from '../types';
 import { geminiService } from '../services/geminiService';
@@ -167,7 +166,8 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-stone-100 dark:bg-stone-900 relative overflow-hidden transition-colors duration-300">
+    // Make container transparent so Nebula shows
+    <div className="flex flex-col h-[calc(100vh-4rem)] bg-white/50 dark:bg-stone-950/50 backdrop-blur-xl relative overflow-hidden transition-colors duration-300">
       
       {/* Chapter Progress Bar */}
       <div className="w-full h-1 bg-stone-200 dark:bg-stone-800 shrink-0">

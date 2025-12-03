@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { BookOpen, Moon, Sun, Menu, X, Edit3, Library, Settings } from 'lucide-react';
 import { ViewState } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import ColorBends from './ColorBends';
+import { NebulaBackground } from './NebulaBackground';
 import { SettingsModal } from './SettingsModal';
 
 interface AppShellProps {
@@ -28,24 +28,8 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
       
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
-      {/* Background Shader */}
-      <div className="fixed inset-0 -z-10 overflow-hidden bg-stone-950">
-        <ColorBends
-          className="w-full h-full opacity-60"
-          colors={["#4c1d95", "#0d9488", "#f59e0b", "#be185d"]}
-          rotation={45}
-          speed={0.15}
-          scale={1.5}
-          frequency={0.8}
-          warpStrength={2.5}
-          mouseInfluence={0.3}
-          parallax={0.4}
-          noise={0.1}
-          transparent
-        />
-        {/* Noise Overlay for texture consistency */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] brightness-150 contrast-150 pointer-events-none" />
-      </div>
+      {/* New Nebula Background */}
+      <NebulaBackground />
 
       {/* Header */}
       <header className="sticky top-0 z-50 h-20 transition-all duration-300">

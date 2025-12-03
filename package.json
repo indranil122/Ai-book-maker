@@ -16,8 +16,7 @@
     "react": "^19.2.0",
     "jszip": "3.10.1",
     "file-saver": "2.0.5",
-    "jspdf": "2.5.1",
-    "three": "0.160.0"
+    "jspdf": "2.5.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
