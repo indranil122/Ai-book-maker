@@ -32,15 +32,15 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
       <div className="fixed inset-0 -z-10 overflow-hidden bg-stone-950">
         <ColorBends
           className="w-full h-full opacity-60"
-          colors={["#4c1d95", "#0d9488", "#f59e0b"]}
-          rotation={30}
-          speed={0.2}
-          scale={1.2}
-          frequency={1.0}
-          warpStrength={1.5}
-          mouseInfluence={0.5}
-          parallax={0.6}
-          noise={0.15}
+          colors={["#4c1d95", "#0d9488", "#f59e0b", "#be185d"]}
+          rotation={45}
+          speed={0.15}
+          scale={1.5}
+          frequency={0.8}
+          warpStrength={2.5}
+          mouseInfluence={0.3}
+          parallax={0.4}
+          noise={0.1}
           transparent
         />
         {/* Noise Overlay for texture consistency */}
@@ -68,9 +68,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
             <div className="flex flex-col -space-y-1">
               <span className="font-serif font-bold text-2xl tracking-tight text-stone-900 dark:text-white group-hover:text-saffron-600 dark:group-hover:text-saffron-400 transition-colors duration-300 drop-shadow-sm">
                 Lumina
-              </span>
-              <span className="text-[0.6rem] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest font-sans opacity-80">
-                by Chatterjee House of Apps
               </span>
             </div>
           </div>
@@ -174,13 +171,6 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
                    <Settings size={24} /> Settings
                 </button>
              </nav>
-             
-             <div className="absolute bottom-10 left-0 w-full px-8 text-center">
-                <div className="w-12 h-1 bg-stone-200 dark:bg-stone-800 rounded-full mx-auto mb-4" />
-                <p className="text-[0.65rem] font-bold text-stone-400 dark:text-stone-500 uppercase tracking-[0.2em]">
-                  Chatterjee House of Apps
-                </p>
-             </div>
           </motion.div>
         )}
       </AnimatePresence>

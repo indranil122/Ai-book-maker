@@ -136,12 +136,6 @@ export const Landing: React.FC<LandingProps> = ({ onStart }) => {
                 <h2 className="font-serif text-5xl md:text-6xl font-bold text-stone-900 dark:text-stone-50 tracking-tighter mb-2">
                   Lumina AI
                 </h2>
-                <div className="flex items-center gap-2">
-                   <div className="h-px w-8 bg-saffron-500"></div>
-                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-stone-500 dark:text-stone-400">
-                     by Chatterjee House of Apps
-                   </p>
-                </div>
               </div>
               <p className="text-stone-600 dark:text-stone-400 max-w-sm leading-relaxed">
                 Empowering the next generation of storytellers with artificial intelligence. 
@@ -173,7 +167,7 @@ export const Landing: React.FC<LandingProps> = ({ onStart }) => {
           <div className="mt-20 pt-8 border-t border-stone-200 dark:border-stone-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-stone-400 font-medium uppercase tracking-wider">
              <span>© {new Date().getFullYear()} Lumina Studio. All rights reserved.</span>
              <div className="flex items-center gap-1">
-               Made with <Heart size={12} className="text-red-500 fill-red-500" /> by Chatterjee House of Apps
+               Made with <Heart size={12} className="text-red-500 fill-red-500" /> by Lumina Studio
              </div>
           </div>
         </div>

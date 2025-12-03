@@ -300,10 +300,11 @@ export default function ColorBends({
       pointerTargetRef.current.set(x, y);
     };
 
-    // Explicitly cast to prevent TypeScript from inferring 'never'
-    (el as HTMLDivElement).addEventListener('pointermove', handlePointerMove as unknown as EventListener);
+    const target = el as unknown as HTMLElement;
+    target.addEventListener('pointermove', handlePointerMove as unknown as EventListener);
+    
     return () => {
-      (el as HTMLDivElement).removeEventListener('pointermove', handlePointerMove as unknown as EventListener);
+      target.removeEventListener('pointermove', handlePointerMove as unknown as EventListener);
     };
   }, []);
 
