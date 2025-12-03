@@ -16,6 +16,7 @@ interface EditorProps {
 export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isIllustrating, setIsIllustrating] = useState(false);
   const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
@@ -39,6 +40,15 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
     updatedChapters[activeChapterIndex] = {
       ...updatedChapters[activeChapterIndex],
       content: newContent
+    };
+    onUpdateBook({ ...book, chapters: updatedChapters });
+  };
+  
+  const handleIllustrationUpdate = (illustrationUrl: string) => {
+    const updatedChapters = [...book.chapters];
+    updatedChapters[activeChapterIndex] = {
+      ...updatedChapters[activeChapterIndex],
+      illustrationUrl,
     };
     onUpdateBook({ ...book, chapters: updatedChapters });
   };
@@ -72,6 +82,28 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       alert("Failed to generate content. Please check your connection and try again.");
     } finally {
       setIsGenerating(false);
+    }
+  };
+  
+  const handleGenerateIllustration = async () => {
+    if (!activeChapter || !activeChapter.content) {
+        alert("Please generate chapter content before creating an illustration.");
+        return;
+    }
+    setIsIllustrating(true);
+    try {
+        const sceneDescription = activeChapter.content.substring(0, 1000); // Use first 1000 chars as context
+        const url = await geminiService.generateIllustration(sceneDescription, book.genre);
+        if (url) {
+            handleIllustrationUpdate(url);
+        } else {
+            throw new Error("Illustration generation returned no image.");
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Failed to generate illustration. Please try again.");
+    } finally {
+        setIsIllustrating(false);
     }
   };
 
@@ -271,6 +303,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
                          <h2 className="font-serif font-bold text-xl text-stone-900 dark:text-stone-100 truncate">{activeChapter.title}</h2>
                     </div>
                     <div className="flex items-center gap-2 overflow-x-auto">
+                        <button onClick={handleGenerateIllustration} disabled={isIllustrating || isChapterEmpty} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40"><Wand2 size={14}/> Illustrate</button>
                         <button onClick={() => setIsPreview(!isPreview)} className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg ${isPreview ? 'bg-saffron-100 dark:bg-saffron-900/50 text-saffron-700 dark:text-saffron-300' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'}`}><Eye size={14}/> Preview</button>
                         <button onClick={() => setShowRewriteModal(true)} disabled={!selectionRange} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed"><PenLine size={14}/> Rewrite</button>
                         <button onClick={handleExportPdf} disabled={isExporting} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"><Download size={14}/> PDF</button>
@@ -282,7 +315,31 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
         </AnimatePresence>
         
         <div className={`flex-1 overflow-y-auto p-4 md:p-12 relative transition-all duration-500 ${isFocusMode ? 'max-w-4xl mx-auto w-full' : ''}`}>
-            {isFocusMode && <button onClick={() => setIsFocusMode(false)} className="absolute top-4 right-4 p-2 rounded-lg text-stone-400 bg-stone-800/50 hover:bg-stone-700/80 hover:text-white z-50"><Minimize2 size={16}/></button>}
+            {isFocusMode && <button onClick={() => setIsFocusMode(false)} className="fixed top-4 right-4 p-2 rounded-lg text-stone-400 bg-black/30 hover:bg-black/50 hover:text-white z-50 backdrop-blur-sm"><Minimize2 size={16}/></button>}
+            
+            <AnimatePresence>
+              {(isIllustrating || activeChapter.illustrationUrl) && (
+                <motion.div
+                  layout
+                  initial={{ opacity: 0, height: 0, y: -20 }}
+                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -20 }}
+                  className="mb-8 overflow-hidden"
+                >
+                  <div className="aspect-video bg-stone-100 dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 flex items-center justify-center relative shadow-lg">
+                    {isIllustrating && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-500 dark:text-stone-400">
+                        <Loader2 className="animate-spin mb-2" />
+                        <span className="text-sm font-medium">Visualizing scene...</span>
+                      </div>
+                    )}
+                    {activeChapter.illustrationUrl && (
+                      <img src={activeChapter.illustrationUrl} alt={`Illustration for ${activeChapter.title}`} className="w-full h-full object-cover"/>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
            
             {isChapterEmpty ? (
                 <div className="flex flex-col items-center justify-center h-full text-center text-stone-500 dark:text-stone-400">

@@ -29,6 +29,7 @@ export interface Chapter {
   summary: string;
   content: string;
   isGenerated: boolean;
+  illustrationUrl?: string; // URL for the chapter-specific illustration
 }
 
 export interface Book {
