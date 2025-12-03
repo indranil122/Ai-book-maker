@@ -44,9 +44,13 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           >
             <motion.div 
               whileHover={{ rotate: 10, scale: 1.05 }}
-              className="w-10 h-10 bg-stone-900 dark:bg-white rounded-xl flex items-center justify-center text-white dark:text-stone-900 shadow-lg shadow-purple-500/20"
+              className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
             >
-              <BookOpen size={22} />
+              <img 
+                src="https://github.com/indranil122/image/blob/main/ChatGPT%20Image%20Dec%204,%202025,%2012_50_02%20AM-Photoroom.png?raw=true" 
+                alt="Lumina Logo" 
+                className="w-full h-full object-contain" 
+              />
             </motion.div>
             <div className="flex flex-col -space-y-1">
               <span className="font-serif font-bold text-2xl tracking-tight text-stone-900 dark:text-white group-hover:text-saffron-600 dark:group-hover:text-saffron-400 transition-colors duration-300 drop-shadow-sm">
