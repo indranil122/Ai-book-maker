@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Book as BookType, ChatMessage, Character } from '../types';
 import { geminiService } from '../services/geminiService';
@@ -32,26 +33,52 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
     
     const loadVoices = () => {
       const available = window.speechSynthesis.getVoices();
+      if (available.length === 0) return; // Voices not yet loaded.
+      
       setVoices(available);
       
-      // Smart selection: Prioritize "Google US English", "Microsoft Zira", or other premium-sounding voices
-      const preferred = available.find(v => v.name === 'Google US English') 
-                     || available.find(v => v.name.includes('Google') && v.lang.startsWith('en'))
-                     || available.find(v => v.name.includes('Zira') && v.lang.startsWith('en'))
-                     || available.find(v => v.name.includes('Samantha'))
-                     || available.find(v => v.lang === 'en-US')
-                     || available.find(v => v.lang.startsWith('en'));
+      // Ranked list of preferred, high-quality voices.
+      const rankedVoices = [
+        'Google US English',
+        'Microsoft Zira Online', // High-quality cloud voice
+        'Microsoft David Online',
+        'Samantha', // Common on Apple devices
+        'Alex',     // High-quality Apple voice
+        'Google UK English Female',
+      ];
+
+      let bestVoice: SpeechSynthesisVoice | null = null;
+
+      // Find the best match from our ranked list
+      for (const name of rankedVoices) {
+          const found = available.find(v => v.name === name && v.lang.startsWith('en'));
+          if (found) {
+              bestVoice = found;
+              break;
+          }
+      }
       
-      if (preferred) {
-        setSelectedVoice(preferred);
+      // If no ranked voice is found, use a robust fallback logic
+      if (!bestVoice) {
+          bestVoice = available.find(v => v.lang === 'en-US' && v.name.includes('Google'))
+                   || available.find(v => v.lang === 'en-US' && v.name.includes('Microsoft'))
+                   || available.find(v => v.lang === 'en-US' && v.default)
+                   || available.find(v => v.lang === 'en-US')
+                   || available.find(v => v.lang.startsWith('en'));
+      }
+
+      if (bestVoice) {
+        setSelectedVoice(bestVoice);
       }
     };
 
-    loadVoices();
+    // onvoiceschanged is the correct event to listen for
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
       window.speechSynthesis.onvoiceschanged = loadVoices;
     }
+    loadVoices(); // Initial call in case they are already loaded
 
+    // Cleanup function to stop speech when the component unmounts
     return () => {
       if (synthesisRef.current) {
         synthesisRef.current.cancel();
@@ -72,7 +99,6 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
         // Start new utterance
         synthesisRef.current.cancel();
         
-        // Use content if available, otherwise summary
         const textToRead = activeChapter.content && activeChapter.content.length > 50 
           ? activeChapter.content 
           : activeChapter.summary;
@@ -83,9 +109,10 @@ export const Reader: React.FC<ReaderProps> = ({ book }) => {
           utterance.voice = selectedVoice;
         }
         
-        // Tuning for more natural audiobook style
-        utterance.rate = 0.95; // Slightly measured pace
-        utterance.pitch = 1.05; // Slightly brighter tone for clarity
+        // Tuning for a modern, clear voice. Premium voices sound best at defaults.
+        utterance.rate = 1; // Normal speed
+        utterance.pitch = 1; // Normal pitch
+        utterance.volume = 1; // Max volume
         
         utterance.onend = () => setIsPlaying(false);
         utterance.onerror = (e) => {

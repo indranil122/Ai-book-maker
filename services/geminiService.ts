@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { Chapter, Book, Character } from "../types";
 import { getApiKey } from "../config";
@@ -156,7 +157,7 @@ class GeminiService {
   }
 
   /**
-   * Generates a high-contrast, visually striking book cover.
+   * Generates a hyper-specific, visually striking book cover.
    */
   async generateBookCover(title: string, genre: string, tone: string): Promise<string | undefined> {
     try {
@@ -166,82 +167,48 @@ class GeminiService {
         const g = genre.toLowerCase();
         const t = tone.toLowerCase();
         
-        // Default fallback
         let artDirection = "Highly contrasting, cinematic lighting, 8k resolution, award-winning digital art.";
         let typographyStyle = "Bold, readable, metallic typography.";
 
-        // 1. DARK ROMANCE / GOTHIC
         if (g.includes('dark romance') || (g.includes('romance') && (t.includes('dark') || t.includes('gothic')))) {
-            artDirection = "Gothic Baroque masterpiece. High Contrast. Deep obsidian shadows vs piercing ruby red highlights. Velvet textures, thorns, blood red roses, silver daggers. Dramatic Chiaroscuro lighting.";
-            typographyStyle = "Elegant, sharp serif font in Silver or Gold leaf. Title '${title}' MUST be clearly visible in center.";
+            artDirection = "Gothic Baroque masterpiece in the style of Tom Bagshaw and Brom. High Contrast. Deep obsidian shadows vs piercing ruby red highlights. A single symbolic object (a key, a mask, a wilting rose). Smoke tendrils, velvet textures, thorns. Dramatic Chiaroscuro lighting.";
+            typographyStyle = "Elegant, sharp serif font in Silver or Gold leaf, subtly distressed. Title '${title}' MUST be clearly visible and integrated into the art.";
         } 
-        // 2. CYBERPUNK / SCI-FI
         else if (g.includes('cyberpunk') || (g.includes('sci') && t.includes('neon'))) {
-            artDirection = "Neon Noir Cyberpunk. High Contrast. Deep midnight blues vs blinding neon pinks and cyans. Glitch art aesthetic, rain-slicked streets, chrome reflections. Blade Runner vibe.";
-            typographyStyle = "Futuristic, glitch-effect sans-serif font in glowing Neon. Title '${title}' MUST be large and legible.";
+            artDirection = "Neon Noir Cyberpunk in the style of Josan Gonzalez and Syd Mead. High Contrast. Deep midnight blues vs blinding neon pinks and cyans. Hyper-detailed, rain-slicked streets, holographic advertisements, chrome reflections.";
+            typographyStyle = "Futuristic, glitch-effect sans-serif font in glowing Neon. Title '${title}' MUST be large and legible, as if part of a heads-up display.";
         }
-        // 3. HIGH FANTASY
         else if (g.includes('fantasy')) {
-           artDirection = "Ethereal High Fantasy. High Contrast. Deep forest greens vs glowing bioluminescent gold/magic. Oil painting style (Frank Frazetta meets Studio Ghibli). Epic scale, magical artifacts.";
-           typographyStyle = "Ornate, hand-lettered gold calligraphy. Title '${title}' MUST be woven into the artwork.";
+           artDirection = "Ethereal High Fantasy in the style of John Howe and Alan Lee. High Contrast. Deep ancient forest greens vs glowing golden magic. Oil painting texture. Epic scale, atmospheric perspective, a lone figure gazing at ancient ruins.";
+           typographyStyle = "Ornate, hand-lettered gold calligraphy with a subtle glow. Title '${title}' MUST be woven into the artwork's composition.";
         }
-        // 4. THRILLER / MYSTERY
         else if (g.includes('thriller') || g.includes('mystery')) {
-          artDirection = "Psychological Thriller. High Contrast. Stark Black and White with a single splash of Intense Red. Double exposure photography, silhouettes, fog, cinematic suspense.";
-          typographyStyle = "Bold, distressed sans-serif font. Title '${title}' MUST be huge and imposing.";
+          artDirection = "Psychological Thriller cover, minimalist and stark. High Contrast. Stark Black and White with a single splash of Intense Red. Double exposure photography, a face blending with a cityscape, silhouettes in fog. Cinematic suspense.";
+          typographyStyle = "Bold, distressed, condensed sans-serif font. Title '${title}' MUST be huge and imposing, creating tension.";
         }
-        // 5. ROMANCE (General)
-        else if (g.includes('romance')) {
-          artDirection = "Modern Romance. High Contrast. Vibrant pastel gradients vs deep saturated accents. Vector art style, flat design, clean lines, warm golden hour lighting.";
-          typographyStyle = "Trendy, bold serif font. Title '${title}' MUST be central.";
-        }
-        // 6. HORROR
         else if (g.includes('horror')) {
-          artDirection = "Cosmic Horror. High Contrast. Deep Vantablack shadows vs sickly neon green or blood orange. Surreal, unsettling composition, scratchy textures.";
-          typographyStyle = "Jagged, scratched-in font. Title '${title}' MUST look terrifying.";
+          artDirection = "Cosmic Horror in the style of Zdzisław Beksiński. High Contrast. Deep Vantablack shadows vs sickly neon green or blood orange. Surreal, unsettling, non-euclidean geometry, scratchy textures.";
+          typographyStyle = "Jagged, hand-scratched font. Title '${title}' MUST look terrifying and unstable.";
         }
-        // 7. HISTORICAL FICTION
-        else if (g.includes('historical')) {
-          artDirection = "Historical Epic. High Contrast. Oil painting style (19th century academy art). Rich earth tones, period clothing, dramatic lighting.";
-          typographyStyle = "Classic serif font, elegant and timeless. Title '${title}' MUST be central.";
-        }
-        // 8. YOUNG ADULT
-        else if (g.includes('young adult') || g.includes('ya')) {
-          artDirection = "Young Adult Best Seller. High Contrast. Bold, vector illustration or stylized photography. Vibrant colors, symbolic imagery.";
-          typographyStyle = "Large, modern typography, possibly hand-written style. Title '${title}' MUST be the focal point.";
-        }
-
+        
         const prompt = `
-          Design a professional, best-selling book cover for: "${title}".
+          Design a professional, publishable, best-selling book cover for: "${title}".
           Genre: ${genre}. Tone: ${tone}.
-          
           VISUAL STYLE: ${artDirection}
-          COLORS: Use a High Contrast color palette. Make it pop.
-          
-          TYPOGRAPHY INSTRUCTION: The title "${title}" MUST be written on the cover. 
-          STYLE: ${typographyStyle}
-          
-          COMPOSITION: Vertical aspect ratio (3:4). Title at top or center. Main artistic subject clearly defined.
+          TYPOGRAPHY: The title "${title}" MUST be written prominently on the cover. Use this style: ${typographyStyle}
+          COMPOSITION: Vertical aspect ratio (3:4). Clean, professional layout.
         `;
 
         const response = await ai.models.generateContent({
           model: model,
-          contents: {
-            parts: [{ text: prompt }]
-          },
-          config: {
-            imageConfig: {
-              aspectRatio: "3:4"
-            }
-          }
+          contents: { parts: [{ text: prompt }] },
+          config: { imageConfig: { aspectRatio: "3:4" } }
         });
 
-        if (response.candidates?.[0]?.content?.parts) {
-          for (const part of response.candidates[0].content.parts) {
-             if (part.inlineData && part.inlineData.mimeType.startsWith('image')) {
-                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-             }
-          }
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
+           if (part.inlineData && part.inlineData.mimeType.startsWith('image')) {
+              return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+           }
         }
         return undefined;
       });
@@ -250,6 +217,47 @@ class GeminiService {
       return undefined;
     }
   }
+  
+  /**
+   * Generates a world map for a book.
+   */
+  async generateWorldMap(book: Book): Promise<string | undefined> {
+    try {
+      return await this.withRetry(async () => {
+        const ai = this.getClient();
+        const model = "gemini-2.5-flash-image";
+        const settingSummary = book.chapters.map(c => c.summary).join(' ').substring(0, 1000);
+
+        const prompt = `
+          Create a detailed world map for a ${book.genre} book titled "${book.title}".
+          The world is described as having a ${book.tone} tone. 
+          Key elements from the story include: ${settingSummary}.
+          
+          STYLE: Generate a beautiful, hand-drawn map in a vintage parchment or epic fantasy style. 
+          Include geographical features like mountains, forests, rivers, and cities that fit the genre.
+          Do NOT include any text or labels on the map. The map should be purely visual.
+          ASPECT RATIO: 16:9, landscape.
+        `;
+        
+        const response = await ai.models.generateContent({
+          model: model,
+          contents: { parts: [{ text: prompt }] },
+          config: { imageConfig: { aspectRatio: "16:9" } }
+        });
+
+        for (const part of response.candidates?.[0]?.content?.parts || []) {
+           if (part.inlineData && part.inlineData.mimeType.startsWith('image')) {
+              return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+           }
+        }
+        return undefined;
+      });
+    } catch (error) {
+      console.error("World map generation failed:", error);
+      return undefined;
+    }
+  }
+
 
   /**
    * Generates a cinematic illustration for a specific scene.

@@ -1,4 +1,5 @@
 
+
 export enum ViewState {
   LANDING = 'LANDING',
   WIZARD = 'WIZARD',
@@ -6,6 +7,7 @@ export enum ViewState {
   READER = 'READER',
   LOGIN = 'LOGIN',
   SIGNUP = 'SIGNUP',
+  LIBRARY = 'LIBRARY',
 }
 
 export interface User {
@@ -39,6 +41,7 @@ export interface Book {
   coverImage?: string; // URL
   chapters: Chapter[];
   characters: Character[];
+  worldMapUrl?: string; // URL for the new World Map feature
   createdAt: Date;
 }
 

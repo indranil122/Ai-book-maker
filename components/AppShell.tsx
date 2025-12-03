@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { BookOpen, Moon, Sun, Menu, X, Edit3, Library, Settings } from 'lucide-react';
 import { ViewState } from '../types';
@@ -58,8 +59,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
           <nav className="hidden md:flex items-center gap-1 bg-white/40 dark:bg-black/20 p-1.5 rounded-full border border-white/20 dark:border-white/10 backdrop-blur-md shadow-lg shadow-black/5">
             {[
               { id: ViewState.WIZARD, label: 'Create', icon: Edit3 },
-              { id: ViewState.EDITOR, label: 'Editor', icon: BookOpen },
-              { id: ViewState.READER, label: 'Library', icon: Library },
+              { id: ViewState.LIBRARY, label: 'Library', icon: Library },
             ].map((item) => (
               <button 
                 key={item.id}
@@ -67,7 +67,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
                 className={`
                   relative px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2
                   ${currentView === item.id 
-                    ? 'text-stone-900 dark:text-white bg-white dark:bg-white/10 shadow-md' 
+                    ? 'text-stone-900 dark:text-white' 
                     : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5'}
                 `}
               >
@@ -133,18 +133,12 @@ export const AppShell: React.FC<AppShellProps> = ({ children, currentView, setVi
                   </div>
                 </button>
                 
-                {[
-                  { id: ViewState.EDITOR, label: 'Open Editor', icon: Edit3 },
-                  { id: ViewState.READER, label: 'My Library', icon: Library },
-                ].map(item => (
-                  <button 
-                    key={item.id}
-                    onClick={() => handleNavClick(item.id)} 
-                    className="flex items-center gap-4 p-4 rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-600 dark:text-stone-300 font-medium"
-                  >
-                     <item.icon size={24} /> {item.label}
-                  </button>
-                ))}
+                <button 
+                  onClick={() => handleNavClick(ViewState.LIBRARY)} 
+                  className="flex items-center gap-4 p-4 rounded-xl hover:bg-stone-100 dark:hover:bg-white/5 transition-colors text-stone-600 dark:text-stone-300 font-medium"
+                >
+                   <Library size={24} /> My Library
+                </button>
 
                 <button 
                   onClick={() => { setIsSettingsOpen(true); setIsMobileMenuOpen(false); }}
