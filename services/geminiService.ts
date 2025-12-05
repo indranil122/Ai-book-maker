@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { Chapter, Book, Character } from "../types";
 // FIX: Removed getApiKey import to align with Gemini API guidelines.
@@ -83,7 +84,7 @@ class GeminiService {
         
         Generate a JSON response with:
         1. The book title (feel free to improve it).
-        2. A creative author name.
+        2. A creative and unique author pseudonym (pen name). It MUST NOT be a common human name. Examples: 'A. J. Fable', 'The Story Weaver', 'Lexicon Drift'.
         3. A list of 8-12 chapters. Each chapter must have a title and a compelling plot summary (2-3 sentences).
         4. A list of 3-5 main characters. Each character must have a name, role (e.g., Protagonist, Antagonist), and a brief description.
       `;
@@ -98,7 +99,10 @@ class GeminiService {
             type: Type.OBJECT,
             properties: {
               title: { type: Type.STRING },
-              author: { type: Type.STRING },
+              author: { 
+                type: Type.STRING,
+                description: "A creative and unique author pseudonym (pen name), NOT a common human name."
+              },
               chapters: {
                 type: Type.ARRAY,
                 items: {
