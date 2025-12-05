@@ -1,11 +1,10 @@
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Book as BookType, Chapter } from '../types';
 import { geminiService } from '../services/geminiService';
 import { epubService } from '../services/epubService';
 import { pdfService } from '../services/pdfService';
 import { markdownService } from '../services/markdownService';
-import { Save, RefreshCw, ChevronLeft, ChevronRight, Wand2, Loader2, ImageIcon, PenLine, X, Check, Download, FileText, AlertTriangle, Menu, PanelLeftClose, PanelLeftOpen, Maximize2, Minimize2, BookCopy, Globe, Eye } from 'lucide-react';
+import { Loader2, PenLine, Download, Eye, PanelLeft, PanelRight, Wand2, BookCopy, FileText, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditorProps {
@@ -16,39 +15,28 @@ interface EditorProps {
 export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   const [activeChapterIndex, setActiveChapterIndex] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isIllustrating, setIsIllustrating] = useState(false);
-  const [isGeneratingCover, setIsGeneratingCover] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
-  const [isFocusMode, setIsFocusMode] = useState(false);
   const [isPreview, setIsPreview] = useState(false);
-  
-  const [sidebarTab, setSidebarTab] = useState<'chapters' | 'world'>('chapters');
-  const [isGeneratingMap, setIsGeneratingMap] = useState(false);
-  
+  const [isNavOpen, setIsNavOpen] = useState(true);
+  const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+
   const [selectionRange, setSelectionRange] = useState<{start: number, end: number} | null>(null);
   const [showRewriteModal, setShowRewriteModal] = useState(false);
   const [rewriteInstruction, setRewriteInstruction] = useState("");
   const [isRewriting, setIsRewriting] = useState(false);
-  
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const activeChapter = book.chapters[activeChapterIndex];
+
+  const wordCount = useMemo(() => {
+    return activeChapter?.content?.split(/\s+/).filter(Boolean).length || 0;
+  }, [activeChapter?.content]);
 
   const handleContentChange = (newContent: string) => {
     const updatedChapters = [...book.chapters];
     updatedChapters[activeChapterIndex] = {
       ...updatedChapters[activeChapterIndex],
       content: newContent
-    };
-    onUpdateBook({ ...book, chapters: updatedChapters });
-  };
-  
-  const handleIllustrationUpdate = (illustrationUrl: string) => {
-    const updatedChapters = [...book.chapters];
-    updatedChapters[activeChapterIndex] = {
-      ...updatedChapters[activeChapterIndex],
-      illustrationUrl,
     };
     onUpdateBook({ ...book, chapters: updatedChapters });
   };
@@ -69,9 +57,6 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       const prevChapterSummary = activeChapterIndex > 0 ? book.chapters[activeChapterIndex - 1].summary : undefined;
       const content = await geminiService.generateChapterContent(book.title, activeChapter, prevChapterSummary);
       
-      if (!content || content.length < 50) {
-          throw new Error("Content generation returned empty.");
-      }
       handleContentChange(content);
       const updatedChapters = [...book.chapters];
       updatedChapters[activeChapterIndex].isGenerated = true;
@@ -82,60 +67,6 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       alert("Failed to generate content. Please check your connection and try again.");
     } finally {
       setIsGenerating(false);
-    }
-  };
-  
-  const handleGenerateIllustration = async () => {
-    if (!activeChapter || !activeChapter.content) {
-        alert("Please generate chapter content before creating an illustration.");
-        return;
-    }
-    setIsIllustrating(true);
-    try {
-        const sceneDescription = activeChapter.content.substring(0, 1000); // Use first 1000 chars as context
-        const url = await geminiService.generateIllustration(sceneDescription, book.genre);
-        if (url) {
-            handleIllustrationUpdate(url);
-        } else {
-            throw new Error("Illustration generation returned no image.");
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Failed to generate illustration. Please try again.");
-    } finally {
-        setIsIllustrating(false);
-    }
-  };
-
-  const handleRegenerateCover = async () => {
-    if (isGeneratingCover) return;
-    setIsGeneratingCover(true);
-    try {
-      const newCover = await geminiService.generateBookCover(book.title, book.genre, book.tone);
-      if (newCover) {
-        onUpdateBook({ ...book, coverImage: newCover });
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Failed to generate new cover");
-    } finally {
-      setIsGeneratingCover(false);
-    }
-  };
-  
-  const handleGenerateMap = async () => {
-    if(isGeneratingMap) return;
-    setIsGeneratingMap(true);
-    try {
-      const mapUrl = await geminiService.generateWorldMap(book);
-      if(mapUrl) {
-        onUpdateBook({ ...book, worldMapUrl: mapUrl });
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Failed to generate world map.");
-    } finally {
-      setIsGeneratingMap(false);
     }
   };
 
@@ -165,19 +96,29 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
       setIsRewriting(false);
     }
   };
+  
+  const handleExportPdf = () => {
+    setIsExporting(true);
+    try {
+      pdfService.generatePdf(book);
+    } catch (error) {
+      console.error("Failed to export PDF:", error);
+      alert("Failed to export PDF. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handleExportEpub = async () => {
     setIsExporting(true);
-    try { await epubService.generateEpub(book); } 
-    catch(e) { console.error(e); alert("EPUB Export failed."); } 
-    finally { setIsExporting(false); }
-  };
-
-  const handleExportPdf = async () => {
-    setIsExporting(true);
-    try { pdfService.generatePdf(book); }
-    catch(e) { console.error(e); alert("PDF Export failed."); }
-    finally { setIsExporting(false); }
+    try {
+      await epubService.generateEpub(book);
+    } catch (error) {
+      console.error("Failed to export EPUB:", error);
+      alert("Failed to export EPUB. Please try again.");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   if (!activeChapter) {
@@ -187,9 +128,7 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
   const isChapterEmpty = !activeChapter.content || activeChapter.content.trim().length < 10;
 
   return (
-    <div className="flex h-[calc(100vh-5rem)] overflow-hidden relative bg-white/50 dark:bg-stone-950/50 backdrop-blur-xl transition-colors duration-300">
-      
-      {/* Rewrite Modal */}
+    <div className="flex h-[calc(100vh-5rem)] w-full overflow-hidden relative transition-colors duration-300">
       <AnimatePresence>
         {showRewriteModal && (
           <motion.div 
@@ -220,155 +159,143 @@ export const Editor: React.FC<EditorProps> = ({ book, onUpdateBook }) => {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-       <AnimatePresence>
-        {!isFocusMode && (showMobileSidebar || window.innerWidth >= 768) && (
+      <AnimatePresence>
+        {isNavOpen && (
           <motion.aside 
-            initial={{ x: -300, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -300, opacity: 0 }} transition={{ duration: 0.3 }}
-            className={`absolute md:static inset-y-0 left-0 z-30 w-72 bg-white/70 dark:bg-stone-900/80 backdrop-blur-md border-r border-stone-200/50 dark:border-stone-800/50 flex flex-col transition-colors duration-300 shadow-2xl md:shadow-none ${!showMobileSidebar ? 'hidden md:block' : 'block'}`}
+            initial={{ width: 0, opacity: 0, x: -50 }} 
+            animate={{ width: 288, opacity: 1, x: 0 }} 
+            exit={{ width: 0, opacity: 0, x: -50 }} 
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="w-72 bg-white/70 dark:bg-stone-900/80 backdrop-blur-md border-r border-stone-200/50 dark:border-stone-800/50 flex flex-col flex-shrink-0"
           >
-            <div className="p-5 border-b border-stone-200 dark:border-stone-800 relative">
-               <div className="aspect-[3/4] w-24 rounded-md shadow-lg overflow-hidden float-right ml-4 mb-2 bg-stone-200 dark:bg-stone-800">
-                  {isGeneratingCover ? (
-                     <div className="w-full h-full flex items-center justify-center"><Loader2 className="animate-spin text-stone-400"/></div>
-                  ) : book.coverImage && <img src={book.coverImage} className="w-full h-full object-cover"/>}
-               </div>
-              <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg leading-tight mb-1">{book.title}</h3>
+            <div className="p-5 border-b border-stone-200 dark:border-stone-800">
+              <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg leading-tight mb-1 truncate">{book.title}</h3>
               <p className="text-xs text-stone-500 dark:text-stone-400 font-medium uppercase tracking-wider">{book.chapters.length} Chapters</p>
             </div>
             
-            <div className="flex p-2 border-b border-stone-200 dark:border-stone-800">
-                <button onClick={() => setSidebarTab('chapters')} className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg text-sm font-medium ${sidebarTab === 'chapters' ? 'bg-stone-200 dark:bg-stone-800 text-stone-900 dark:text-stone-100' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800/50'}`}><BookCopy size={16}/> Chapters</button>
-                <button onClick={() => setSidebarTab('world')} className={`flex-1 flex items-center justify-center gap-2 p-2 rounded-lg text-sm font-medium ${sidebarTab === 'world' ? 'bg-stone-200 dark:bg-stone-800 text-stone-900 dark:text-stone-100' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800/50'}`}><Globe size={16}/> World</button>
-            </div>
-            
             <div className="flex-1 overflow-y-auto">
-                {sidebarTab === 'chapters' ? (
-                    <ul className="py-2 space-y-0.5">
-                        {book.chapters.map((chapter, idx) => (
-                            <li key={chapter.id}>
-                                <button
-                                    onClick={() => { setActiveChapterIndex(idx); setShowMobileSidebar(false); }}
-                                    className={`w-full text-left px-5 py-3 text-sm transition-all border-l-4 ${activeChapterIndex === idx ? 'bg-white/80 dark:bg-stone-800/80 border-saffron-500 font-semibold text-stone-900 dark:text-stone-100 shadow-sm' : 'border-transparent text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 hover:text-stone-800 dark:hover:text-stone-200'}`}
-                                >
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div className="flex flex-col overflow-hidden">
-                                            <span className="text-xs text-stone-400 dark:text-stone-500 font-mono mb-0.5">Chapter {idx + 1}</span>
-                                            <span className="truncate">{chapter.title}</span>
-                                        </div>
-                                        {chapter.content && chapter.content.length > 50 && <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-green-500" title="Content Generated" />}
-                                    </div>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <div className="p-4 space-y-4">
-                        <h4 className="font-bold text-stone-700 dark:text-stone-300">World Map</h4>
-                        <div className="aspect-video bg-stone-100 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700 overflow-hidden flex items-center justify-center relative">
-                            {isGeneratingMap && (
-                                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center text-white">
-                                    <Loader2 className="animate-spin mb-2"/>
-                                    <span className="text-xs">Mapping your world...</span>
-                                </div>
-                            )}
-                            {book.worldMapUrl ? (
-                                <img src={book.worldMapUrl} alt="World Map" className="w-full h-full object-cover"/>
-                            ) : (
-                                <div className="text-center text-stone-400 p-2">
-                                    <Globe size={32} className="mx-auto mb-2"/>
-                                    <p className="text-xs">No map has been generated for this world yet.</p>
-                                </div>
-                            )}
-                        </div>
-                        <button onClick={handleGenerateMap} disabled={isGeneratingMap} className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium bg-saffron-500 hover:bg-saffron-600 text-white rounded-lg disabled:opacity-50">
-                            {isGeneratingMap ? <Loader2 size={16} className="animate-spin"/> : <Wand2 size={16}/>}
-                            {book.worldMapUrl ? 'Regenerate Map' : 'Generate Map'}
-                        </button>
-                    </div>
-                )}
+              <ul className="py-2 space-y-0.5">
+                {book.chapters.map((chapter, idx) => (
+                  <li key={chapter.id}>
+                    <button
+                      onClick={() => setActiveChapterIndex(idx)}
+                      className={`w-full text-left px-5 py-3 text-sm transition-all border-l-4 ${activeChapterIndex === idx ? 'bg-white/80 dark:bg-stone-800/80 border-saffron-500 font-semibold text-stone-900 dark:text-stone-100 shadow-sm' : 'border-transparent text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 hover:text-stone-800 dark:hover:text-stone-200'}`}
+                    >
+                      <span className="text-xs text-stone-400 dark:text-stone-500 font-mono mb-0.5 block">Chapter {idx + 1}</span>
+                      <span className="truncate block font-medium">{chapter.title}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           </motion.aside>
         )}
       </AnimatePresence>
 
-      <main className="flex-1 flex flex-col bg-transparent relative transition-colors duration-300 w-full overflow-hidden">
-        <AnimatePresence>
-            {!isFocusMode && (
-                <motion.div initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -60, opacity: 0 }} className="flex-shrink-0 h-16 bg-white/60 dark:bg-stone-900/60 backdrop-blur-md border-b border-stone-200/50 dark:border-stone-800/50 flex items-center justify-between px-4 gap-2">
-                    <div className="flex items-center gap-2">
-                         <button onClick={() => setShowMobileSidebar(!showMobileSidebar)} className="md:hidden p-2 text-stone-500 hover:text-stone-900 dark:hover:text-white">
-                            {showMobileSidebar ? <PanelLeftClose/> : <PanelLeftOpen />}
-                         </button>
-                         <h2 className="font-serif font-bold text-xl text-stone-900 dark:text-stone-100 truncate">{activeChapter.title}</h2>
+      <main className="flex-1 flex flex-col bg-transparent transition-colors duration-300 w-full overflow-hidden">
+        <header className="flex-shrink-0 h-16 bg-white/60 dark:bg-stone-900/60 backdrop-blur-md border-b border-stone-200/50 dark:border-stone-800/50 flex items-center justify-between px-4 gap-2 z-10">
+            <div className="flex items-center gap-2">
+                 <button onClick={() => setIsNavOpen(!isNavOpen)} className="p-2 text-stone-500 hover:text-stone-900 dark:hover:text-white rounded-full hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-colors">
+                    <PanelLeft size={18}/>
+                 </button>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto">
+                <button onClick={() => setIsPreview(!isPreview)} className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg ${isPreview ? 'bg-saffron-100 dark:bg-saffron-900/50 text-saffron-700 dark:text-saffron-300' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'}`}><Eye size={14}/> Preview</button>
+                <button onClick={() => setShowRewriteModal(true)} disabled={!selectionRange} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed"><PenLine size={14}/> Rewrite</button>
+                <div className="relative group">
+                    <button disabled={isExporting} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"><Download size={14}/> Export <ChevronDown size={12} /></button>
+                    <div className="absolute top-full right-0 mt-2 w-40 bg-white dark:bg-stone-800 rounded-lg shadow-xl border border-stone-200 dark:border-stone-700 p-2 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
+                        <button onClick={handleExportPdf} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-stone-100 dark:hover:bg-stone-700"><BookCopy size={14}/> PDF</button>
+                        <button onClick={handleExportEpub} className="w-full text-left flex items-center gap-2 px-3 py-2 text-sm rounded hover:bg-stone-100 dark:hover:bg-stone-700"><FileText size={14}/> ePub</button>
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto">
-                        <button onClick={handleGenerateIllustration} disabled={isIllustrating || isChapterEmpty} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40"><Wand2 size={14}/> Illustrate</button>
-                        <button onClick={() => setIsPreview(!isPreview)} className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg ${isPreview ? 'bg-saffron-100 dark:bg-saffron-900/50 text-saffron-700 dark:text-saffron-300' : 'text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800'}`}><Eye size={14}/> Preview</button>
-                        <button onClick={() => setShowRewriteModal(true)} disabled={!selectionRange} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed"><PenLine size={14}/> Rewrite</button>
-                        <button onClick={handleExportPdf} disabled={isExporting} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"><Download size={14}/> PDF</button>
-                        <button onClick={handleExportEpub} disabled={isExporting} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800">ePub</button>
-                        <button onClick={() => setIsFocusMode(true)} className="p-2 rounded-lg text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"><Maximize2 size={16}/></button>
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-        
-        <div className={`flex-1 overflow-y-auto p-4 md:p-12 relative transition-all duration-500 ${isFocusMode ? 'max-w-4xl mx-auto w-full' : ''}`}>
-            {isFocusMode && <button onClick={() => setIsFocusMode(false)} className="fixed top-4 right-4 p-2 rounded-lg text-stone-400 bg-black/30 hover:bg-black/50 hover:text-white z-50 backdrop-blur-sm"><Minimize2 size={16}/></button>}
-            
-            <AnimatePresence>
-              {(isIllustrating || activeChapter.illustrationUrl) && (
-                <motion.div
-                  layout
-                  initial={{ opacity: 0, height: 0, y: -20 }}
-                  animate={{ opacity: 1, height: 'auto', y: 0 }}
-                  exit={{ opacity: 0, height: 0, y: -20 }}
-                  className="mb-8 overflow-hidden"
-                >
-                  <div className="aspect-video bg-stone-100 dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 flex items-center justify-center relative shadow-lg">
-                    {isIllustrating && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center text-stone-500 dark:text-stone-400">
-                        <Loader2 className="animate-spin mb-2" />
-                        <span className="text-sm font-medium">Visualizing scene...</span>
-                      </div>
-                    )}
-                    {activeChapter.illustrationUrl && (
-                      <img src={activeChapter.illustrationUrl} alt={`Illustration for ${activeChapter.title}`} className="w-full h-full object-cover"/>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-           
-            {isChapterEmpty ? (
-                <div className="flex flex-col items-center justify-center h-full text-center text-stone-500 dark:text-stone-400">
-                    <div className="w-20 h-20 bg-stone-100 dark:bg-stone-800/50 rounded-2xl flex items-center justify-center text-stone-400 dark:text-stone-600 mb-6">
-                        <Wand2 size={40} />
-                    </div>
-                    <h3 className="font-serif text-2xl font-bold text-stone-700 dark:text-stone-300 mb-2">This Chapter is a Blank Page</h3>
-                    <p className="mb-6">Let the AI bring it to life.</p>
-                    <button onClick={generateContent} disabled={isGenerating} className="px-6 py-3 bg-saffron-500 hover:bg-saffron-600 text-white font-bold rounded-xl shadow-lg flex items-center gap-2">
-                        {isGenerating ? <><Loader2 className="animate-spin" size={18} /> Generating...</> : 'Generate Content'}
-                    </button>
                 </div>
-            ) : isPreview ? (
-                <div 
-                  className="prose prose-lg prose-stone dark:prose-invert max-w-none font-serif leading-loose"
-                  dangerouslySetInnerHTML={{ __html: markdownService.parse(activeChapter.content) }} 
-                />
-            ) : (
-                <textarea
-                    ref={textareaRef}
-                    value={activeChapter.content}
-                    onChange={(e) => handleContentChange(e.target.value)}
-                    onSelect={handleSelect}
-                    className="w-full h-full p-0 bg-transparent resize-none focus:outline-none font-serif text-lg leading-loose text-stone-900 dark:text-stone-200 placeholder:text-stone-400"
-                    placeholder="Start writing your chapter here..."
-                />
-            )}
+            </div>
+            <div className="flex items-center gap-2">
+                 <button onClick={() => setIsInspectorOpen(!isInspectorOpen)} className="p-2 text-stone-500 hover:text-stone-900 dark:hover:text-white rounded-full hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-colors">
+                    <PanelRight size={18}/>
+                 </button>
+            </div>
+        </header>
+        
+        <div className="flex-1 overflow-y-auto relative">
+            <div className="max-w-4xl mx-auto py-12 px-4 md:px-8 h-full">
+                {isChapterEmpty ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center text-stone-500 dark:text-stone-400">
+                        <div className="w-20 h-20 bg-stone-100 dark:bg-stone-800/50 rounded-2xl flex items-center justify-center text-stone-400 dark:text-stone-600 mb-6">
+                            <Wand2 size={40} />
+                        </div>
+                        <h3 className="font-serif text-2xl font-bold text-stone-700 dark:text-stone-300 mb-2">This Chapter is a Blank Page</h3>
+                        <p className="mb-6">Let the AI bring it to life.</p>
+                        <button onClick={generateContent} disabled={isGenerating} className="px-6 py-3 bg-saffron-500 hover:bg-saffron-600 text-white font-bold rounded-xl shadow-lg flex items-center gap-2">
+                            {isGenerating ? <><Loader2 className="animate-spin" size={18} /> Generating...</> : 'Generate Content'}
+                        </button>
+                    </div>
+                ) : isPreview ? (
+                    <div className="bg-ivory/80 dark:bg-stone-950/80 p-8 md:p-12 rounded-lg shadow-lg min-h-full backdrop-blur-sm">
+                       <div 
+                          className="prose prose-lg prose-stone dark:prose-invert max-w-none font-serif leading-loose"
+                          dangerouslySetInnerHTML={{ __html: markdownService.parse(activeChapter.content) }} 
+                       />
+                    </div>
+                ) : (
+                    <textarea
+                        ref={textareaRef}
+                        value={activeChapter.content}
+                        onChange={(e) => handleContentChange(e.target.value)}
+                        onSelect={handleSelect}
+                        className="w-full h-full min-h-[calc(100vh-15rem)] p-0 bg-transparent resize-none focus:outline-none font-serif text-lg leading-loose text-stone-900 dark:text-stone-200 placeholder:text-stone-400"
+                        placeholder="Start writing your chapter here..."
+                    />
+                )}
+            </div>
         </div>
       </main>
+
+       <AnimatePresence>
+        {isInspectorOpen && (
+          <motion.aside 
+            initial={{ width: 0, opacity: 0, x: 50 }} 
+            animate={{ width: 288, opacity: 1, x: 0 }} 
+            exit={{ width: 0, opacity: 0, x: 50 }} 
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="w-72 bg-white/70 dark:bg-stone-900/80 backdrop-blur-md border-l border-stone-200/50 dark:border-stone-800/50 flex flex-col flex-shrink-0"
+          >
+            <div className="p-5 border-b border-stone-200 dark:border-stone-800">
+                <h3 className="font-bold text-stone-900 dark:text-stone-100 text-sm uppercase tracking-wider">Inspector</h3>
+            </div>
+            <div className="p-5 space-y-6 flex-1 overflow-y-auto">
+                <div>
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-3">Chapter Stats</h4>
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                        <div className="bg-stone-100 dark:bg-stone-800/50 p-3 rounded-lg">
+                            <span className="block font-bold text-xl text-stone-900 dark:text-white">{wordCount}</span>
+                            <span className="text-xs text-stone-500">Words</span>
+                        </div>
+                        <div className="bg-stone-100 dark:bg-stone-800/50 p-3 rounded-lg">
+                            <span className="block font-bold text-xl text-stone-900 dark:text-white">{(wordCount / 250).toFixed(1)}</span>
+                            <span className="text-xs text-stone-500">Min Read</span>
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-stone-500 dark:text-stone-400 mb-3">Characters</h4>
+                    {book.characters.length > 0 ? (
+                        <ul className="space-y-2">
+                            {book.characters.map(char => (
+                                <li key={char.name} className="p-3 bg-stone-100 dark:bg-stone-800/50 rounded-lg">
+                                <p className="font-bold text-sm text-stone-800 dark:text-stone-200">{char.name}</p>
+                                <p className="text-xs text-stone-500">{char.role}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-xs text-stone-400 italic">No characters defined yet.</p>
+                    )}
+                </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,18 +1,17 @@
-
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { Chapter, Book, Character } from "../types";
-import { getApiKey } from "../config";
+// FIX: Removed getApiKey import to align with Gemini API guidelines.
+// import { getApiKey } from "../config";
 
 class GeminiService {
   
+  // FIX: Updated getClient to exclusively use process.env.API_KEY per Gemini API guidelines.
   private getClient(): GoogleGenAI {
-    // Prioritize user-configured key, then env var
-    const apiKey = getApiKey() || process.env.API_KEY;
-    if (!apiKey) {
+    // Per Gemini API guidelines, API key must be obtained exclusively from process.env.API_KEY.
+    if (!process.env.API_KEY) {
       throw new Error("API_KEY_MISSING");
     }
-    return new GoogleGenAI({ apiKey });
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
   }
 
   private async withRetry<T>(operation: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
@@ -217,92 +216,6 @@ class GeminiService {
       return undefined;
     }
   }
-  
-  /**
-   * Generates a world map for a book.
-   */
-  async generateWorldMap(book: Book): Promise<string | undefined> {
-    try {
-      return await this.withRetry(async () => {
-        const ai = this.getClient();
-        const model = "gemini-2.5-flash-image";
-        const settingSummary = book.chapters.map(c => c.summary).join(' ').substring(0, 1000);
-
-        const prompt = `
-          Create a detailed world map for a ${book.genre} book titled "${book.title}".
-          The world is described as having a ${book.tone} tone. 
-          Key elements from the story include: ${settingSummary}.
-          
-          STYLE: Generate a beautiful, hand-drawn map in a vintage parchment or epic fantasy style. 
-          Include geographical features like mountains, forests, rivers, and cities that fit the genre.
-          Do NOT include any text or labels on the map. The map should be purely visual.
-          ASPECT RATIO: 16:9, landscape.
-        `;
-        
-        const response = await ai.models.generateContent({
-          model: model,
-          contents: { parts: [{ text: prompt }] },
-          config: { imageConfig: { aspectRatio: "16:9" } }
-        });
-
-        for (const part of response.candidates?.[0]?.content?.parts || []) {
-           if (part.inlineData && part.inlineData.mimeType.startsWith('image')) {
-              return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-           }
-        }
-        return undefined;
-      });
-    } catch (error) {
-      console.error("World map generation failed:", error);
-      return undefined;
-    }
-  }
-
-
-  /**
-   * Generates a cinematic illustration for a specific scene.
-   */
-  async generateIllustration(sceneDescription: string, genre: string): Promise<string | undefined> {
-    try {
-      return await this.withRetry(async () => {
-        const ai = this.getClient();
-        const model = "gemini-2.5-flash-image";
-        
-        const prompt = `
-          Create a stunning, high-contrast cinematic illustration for a ${genre} story.
-          Scene Description: ${sceneDescription}
-          
-          STYLE: Cinematic, highly detailed, dramatic lighting, 8k resolution. 
-          Use rich, deep colors and strong contrast. Make it look like a movie still or concept art.
-          No text on the image.
-        `;
-
-        const response = await ai.models.generateContent({
-          model: model,
-          contents: {
-            parts: [{ text: prompt }]
-          },
-          config: {
-            imageConfig: {
-              aspectRatio: "16:9"
-            }
-          }
-        });
-
-        if (response.candidates?.[0]?.content?.parts) {
-          for (const part of response.candidates[0].content.parts) {
-             if (part.inlineData && part.inlineData.mimeType.startsWith('image')) {
-                return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-             }
-          }
-        }
-        return undefined;
-      });
-    } catch (error) {
-       console.error("Illustration failed:", error);
-       return undefined;
-    }
-  }
 
   /**
    * Generates the content for a specific chapter based on its summary and previous context.
@@ -407,23 +320,6 @@ class GeminiService {
       });
     } catch (error) {
       return "I couldn't connect to the spirit world (API Error).";
-    }
-  }
-
-  /**
-   * Simple connection test for Settings validation
-   */
-  async testConnection(): Promise<boolean> {
-    try {
-       const ai = this.getClient();
-       await ai.models.generateContent({
-         model: "gemini-2.5-flash",
-         contents: "Test",
-       });
-       return true;
-    } catch(e) {
-       console.error("Test connection failed:", e);
-       return false;
     }
   }
 }

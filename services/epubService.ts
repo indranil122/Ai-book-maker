@@ -1,6 +1,7 @@
 import JSZip from 'jszip';
 import FileSaver from 'file-saver';
 import { Book } from '../types';
+import { markdownService } from './markdownService';
 
 export const epubService = {
   generateEpub: async (book: Book) => {
@@ -22,15 +23,16 @@ export const epubService = {
     folder?.folder("Styles")?.file("style.css", `
       body { font-family: serif; margin: 5%; line-height: 1.6; }
       h1 { text-align: center; margin-bottom: 2em; page-break-before: always; }
+      h2, h3, h4 { margin-top: 1.5em; }
       p { margin-bottom: 1em; text-indent: 1.5em; }
       img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-      .cover { width: 100%; height: 100%; object-fit: cover; }
+      .cover { width: 100%; height: 100vh; object-fit: contain; }
+      blockquote { border-left: 2px solid #ccc; padding-left: 1em; margin-left: 0; font-style: italic; }
     `);
 
     // 4. Process Cover Image
     let coverFilename = "";
     if (book.coverImage) {
-        // Assuming base64 data URI
         const match = book.coverImage.match(/^data:image\/(png|jpeg|jpg);base64,(.*)$/);
         if (match) {
             const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
@@ -41,6 +43,7 @@ export const epubService = {
 
     // 5. Create Chapter HTML files
     book.chapters.forEach((chapter, index) => {
+      const parsedContent = markdownService.parse(chapter.content);
       const content = `<?xml version='1.0' encoding='utf-8'?>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -49,7 +52,7 @@ export const epubService = {
 </head>
 <body>
   <h1>${chapter.title}</h1>
-  ${chapter.content.split('\n').map(p => `<p>${p}</p>`).join('')}
+  ${parsedContent}
 </body>
 </html>`;
       folder?.folder("Text")?.file(`chapter${index}.xhtml`, content);
@@ -61,7 +64,7 @@ export const epubService = {
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head><title>Cover</title><link href="Styles/style.css" rel="stylesheet" type="text/css"/></head>
 <body>
-  <div style="text-align: center; padding: 0pt; margin: 0pt;">
+  <div style="text-align: center; padding: 0pt; margin: 0pt; height: 100vh;">
     <img src="../Images/${coverFilename}" class="cover" alt="Cover"/>
   </div>
 </body>
@@ -73,8 +76,8 @@ export const epubService = {
     // 6. CONTENT.OPF (Manifest & Spine)
     const manifestItems = book.chapters.map((_, i) => `<item id="chap${i}" href="Text/chapter${i}.xhtml" media-type="application/xhtml+xml"/>`).join('\n');
     const spineItems = book.chapters.map((_, i) => `<itemref idref="chap${i}"/>`).join('\n');
-    const coverManifest = coverFilename ? `<item id="cover-image" href="Images/${coverFilename}" media-type="image/${coverFilename.split('.').pop() === 'png' ? 'png' : 'jpeg'}"/>\n<item id="cover" href="Text/cover.xhtml" media-type="application/xhtml+xml"/>` : '';
-    const coverSpine = coverFilename ? `<itemref idref="cover"/>` : '';
+    const coverManifest = coverFilename ? `<item id="cover-image" href="Images/${coverFilename}" media-type="image/${coverFilename.split('.').pop() === 'png' ? 'png' : 'jpeg'}"/>\n<item id="cover" href="Text/cover.xhtml" media-type="application/xhtml+xml" properties="cover-image"/>` : '';
+    const coverSpine = coverFilename ? `<itemref idref="cover" linear="no"/>` : '';
 
     const opf = `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId" version="2.0">
@@ -82,7 +85,7 @@ export const epubService = {
       <dc:title>${book.title}</dc:title>
       <dc:creator opf:role="aut">${book.author}</dc:creator>
       <dc:language>en</dc:language>
-      <meta name="cover" content="cover-image" />
+      ${coverFilename ? `<meta name="cover" content="cover-image" />` : ''}
    </metadata>
    <manifest>
       <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
@@ -100,10 +103,17 @@ export const epubService = {
 
     // 7. TOC.NCX
     const navPoints = book.chapters.map((chapter, i) => `
-      <navPoint id="navPoint-${i + 1}" playOrder="${i + 1}">
+      <navPoint id="navPoint-${i + 1}" playOrder="${i + 2}">
          <navLabel><text>${chapter.title}</text></navLabel>
          <content src="Text/chapter${i}.xhtml"/>
       </navPoint>`).join('\n');
+    
+    const coverNavPoint = coverFilename ? `
+      <navPoint id="navPoint-1" playOrder="1">
+         <navLabel><text>Cover</text></navLabel>
+         <content src="Text/cover.xhtml"/>
+      </navPoint>` : '';
+
 
     const ncx = `<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
@@ -115,6 +125,7 @@ export const epubService = {
    </head>
    <docTitle><text>${book.title}</text></docTitle>
    <navMap>
+      ${coverNavPoint}
       ${navPoints}
    </navMap>
 </ncx>`;
@@ -124,7 +135,6 @@ export const epubService = {
     // 8. Generate and Download
     const blob = await zip.generateAsync({ type: "blob" });
     
-    // Handle file-saver imports robustly (esm.sh can return a default object or the function directly)
     const saveAs = (FileSaver as any).saveAs || (FileSaver as any).default || FileSaver;
     saveAs(blob, `${book.title.replace(/\s+/g, '_')}.epub`);
   }

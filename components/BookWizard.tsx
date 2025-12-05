@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Book, Sparkles, ArrowRight, CheckCircle2, ImageIcon, Wand2, AlertTriangle, Settings } from 'lucide-react';
@@ -147,7 +146,8 @@ export const BookWizard: React.FC<BookWizardProps> = ({ onBookCreated }) => {
       
       const msg = e.message || e.toString();
       if (msg.includes("API_KEY_MISSING") || msg.includes("AUTH_ERROR")) {
-        setErrorDetails("Missing or invalid API Key. Please check your settings.");
+        // FIX: Updated error message as user can no longer configure API key.
+        setErrorDetails("API Key is missing or invalid. The application is not configured correctly.");
       } else if (msg.includes("QUOTA") || msg.includes("429")) {
         setErrorDetails("Google API Quota exceeded. Please try again later or use a different key.");
       } else {

@@ -11,10 +11,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
     <script>
       // Shim for process.env to prevent "process is not defined" crashes in browser environments
+      // IMPORTANT: DO NOT store sensitive keys here in a real application.
+      // This is for demonstration purposes in environments where .env files are not supported.
       window.process = {
         env: {
           NODE_ENV: 'development',
-          GOOGLE_API_KEY: 'AIzaSyDk35hN7SfjjW0wF2l68CmWNtx5doJv23g' 
         }
       };
       
@@ -42,14 +43,52 @@
             fontFamily: {
               sans: ['Inter', 'sans-serif'],
               serif: ['Playfair Display', 'serif'],
-              body: ['Source Sans+3', 'sans-serif'],
+              body: ['Source Sans 3', 'sans-serif'],
             },
+            typography: (theme) => ({
+              DEFAULT: {
+                css: {
+                  '--tw-prose-body': theme('colors.stone[800]'),
+                  '--tw-prose-headings': theme('colors.stone[900]'),
+                  '--tw-prose-lead': theme('colors.stone[700]'),
+                  '--tw-prose-links': theme('colors.saffron[600]'),
+                  '--tw-prose-bold': theme('colors.stone[900]'),
+                  '--tw-prose-counters': theme('colors.stone[600]'),
+                  '--tw-prose-bullets': theme('colors.stone[400]'),
+                  '--tw-prose-hr': theme('colors.stone[300]'),
+                  '--tw-prose-quotes': theme('colors.stone[900]'),
+                  '--tw-prose-quote-borders': theme('colors.saffron[400]'),
+                  '--tw-prose-captions': theme('colors.stone[700]'),
+                  '--tw-prose-code': theme('colors.stone[900]'),
+                  '--tw-prose-pre-code': theme('colors.stone[100]'),
+                  '--tw-prose-pre-bg': theme('colors.stone[900]'),
+                  '--tw-prose-invert-body': theme('colors.stone[200]'),
+                  '--tw-prose-invert-headings': theme('colors.white'),
+                  '--tw-prose-invert-lead': theme('colors.stone[300]'),
+                  '--tw-prose-invert-links': theme('colors.saffron[400]'),
+                  '--tw-prose-invert-bold': theme('colors.white'),
+                  '--tw-prose-invert-counters': theme('colors.stone[400]'),
+                  '--tw-prose-invert-bullets': theme('colors.stone[600]'),
+                  '--tw-prose-invert-hr': theme('colors.stone[700]'),
+                  '--tw-prose-invert-quotes': theme('colors.stone[100]'),
+                  '--tw-prose-invert-quote-borders': theme('colors.saffron[500]'),
+                  '--tw-prose-invert-captions': theme('colors.stone[400]'),
+                  '--tw-prose-invert-code': theme('colors.white'),
+                  '--tw-prose-invert-pre-code': theme('colors.stone[300]'),
+                  '--tw-prose-invert-pre-bg': 'rgb(0 0 0 / 50%)',
+                },
+              },
+            }),
           }
-        }
+        },
+        plugins: [
+            // Note: In a real build setup, you'd install and import this.
+            // For CDN usage, the plugin functionality is limited.
+            // We are using the typography styles via the theme extension instead.
+        ],
       }
     </script>
     <style>
-      /* Transparent body to allow NebulaBackground to show */
       body {
         background-color: transparent;
         color: #1C1917;
@@ -58,7 +97,6 @@
         background-color: transparent;
         color: #f5f5f4;
       }
-      /* Custom Scrollbar */
       ::-webkit-scrollbar {
         width: 6px;
       }
@@ -91,7 +129,6 @@
     "jszip": "https://esm.sh/jszip@3.10.1",
     "file-saver": "https://esm.sh/file-saver@2.0.5",
     "jspdf": "https://esm.sh/jspdf@2.5.1",
-    "three": "https://esm.sh/three@0.164.1",
     "marked": "https://esm.sh/marked@12.0.2",
     "dompurify": "https://esm.sh/dompurify@3.1.2"
   }
