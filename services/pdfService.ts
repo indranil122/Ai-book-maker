@@ -1,45 +1,28 @@
 import { jsPDF } from "jspdf";
 import { Book } from "../types";
-import { marked } from 'marked';
-
-// A custom renderer for marked that strips all formatting and outputs plain text.
-const plainTextRenderer = new marked.Renderer();
-plainTextRenderer.strong = (text) => text;
-plainTextRenderer.em = (text) => text;
-plainTextRenderer.codespan = (text) => text;
-plainTextRenderer.br = () => '\n';
-plainTextRenderer.del = (text) => text;
-plainTextRenderer.link = (_href, _title, text) => text;
-plainTextRenderer.image = (_href, _title, text) => text;
-plainTextRenderer.text = (text) => text;
-plainTextRenderer.paragraph = (text) => text + '\n\n';
-plainTextRenderer.html = (_html) => '';
-plainTextRenderer.heading = (text, _level) => text + '\n\n';
-plainTextRenderer.hr = () => '\n---\n';
-plainTextRenderer.list = (body, _ordered, _start) => body + '\n';
-plainTextRenderer.listitem = (text) => `• ${text}\n`;
-plainTextRenderer.checkbox = (checked) => (checked ? '[x] ' : '[ ] ');
-plainTextRenderer.blockquote = (quote) => `> ${quote}\n\n`;
-plainTextRenderer.code = (code, _infostring, _escaped) => `${code}\n\n`;
-
-marked.setOptions({ renderer: plainTextRenderer });
-
 
 export const pdfService = {
   generatePdf: (book: Book) => {
+    // Orientation 'p' (portrait), unit 'mm', format 'a4'
     const doc = new jsPDF('p', 'mm', 'a4');
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     
+    // Fonts
     doc.setFont("times", "normal");
 
     // 1. COVER PAGE
     if (book.coverImage) {
       try {
+        // Add image. Using format 'JPEG' usually works well for base64 data uris in jsPDF
+        // If image is PNG, it might need 'PNG'. 
+        // Simple heuristic: check mime type in data uri
         let format = "JPEG";
         if (book.coverImage.startsWith("data:image/png")) {
             format = "PNG";
         }
+        
+        // We want the cover to fill the page
         doc.addImage(book.coverImage, format, 0, 0, pageWidth, pageHeight);
       } catch (e) {
         console.warn("Could not add cover image to PDF", e);
@@ -50,6 +33,7 @@ export const pdfService = {
     // 2. TITLE PAGE
     doc.setFont("times", "bold");
     doc.setFontSize(28);
+    // Align center: x = width/2, y = 1/3 down
     doc.text(book.title, pageWidth / 2, pageHeight / 3, { align: "center", maxWidth: pageWidth - 40 });
     
     doc.setFont("times", "italic");
@@ -79,19 +63,22 @@ export const pdfService = {
 
       let cursorY = margin + 30;
 
-      // Convert chapter markdown to clean plain text
-      const plainTextContent = marked.parse(chapter.content) as string;
-      const paragraphs = plainTextContent.split('\n');
+      // Content Processing
+      // We manually split text to ensure we handle page breaks correctly
+      const paragraphs = chapter.content.split('\n');
       
       paragraphs.forEach(para => {
          if (!para.trim()) {
-             cursorY += lineHeight / 2;
+             cursorY += lineHeight; // Extra space for paragraph breaks
              return;
          }
          
-         const lines = doc.splitTextToSize(para, maxLineWidth);
+         // indent first line of paragraph
+         const indent = "    ";
+         const lines = doc.splitTextToSize(indent + para, maxLineWidth);
          
          lines.forEach((line: string) => {
+             // Check if we need a new page
              if (cursorY > pageHeight - margin) {
                  doc.addPage();
                  cursorY = margin + 10;
@@ -100,8 +87,12 @@ export const pdfService = {
              doc.text(line, margin, cursorY, { align: "justify", maxWidth: maxLineWidth });
              cursorY += lineHeight;
          });
+         
+         // Space between paragraphs
+         cursorY += lineHeight / 2;
       });
 
+      // Add page break after chapter unless it's the last one
       if (index < book.chapters.length - 1) {
           doc.addPage();
       }

@@ -5,7 +5,16 @@ export enum ViewState {
   WIZARD = 'WIZARD',
   EDITOR = 'EDITOR',
   READER = 'READER',
+  LOGIN = 'LOGIN',
+  SIGNUP = 'SIGNUP',
   LIBRARY = 'LIBRARY',
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
 }
 
 export interface Character {
@@ -20,6 +29,7 @@ export interface Chapter {
   summary: string;
   content: string;
   isGenerated: boolean;
+  illustrationUrl?: string; // URL for the chapter-specific illustration
 }
 
 export interface Book {
@@ -32,6 +42,7 @@ export interface Book {
   coverImage?: string; // URL
   chapters: Chapter[];
   characters: Character[];
+  worldMapUrl?: string; // URL for the new World Map feature
   createdAt: Date;
 }
 

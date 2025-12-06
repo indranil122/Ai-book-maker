@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AppShell } from './components/AppShell';
 import { Landing } from './components/Landing';
@@ -7,7 +8,6 @@ import { Reader } from './components/Reader';
 import { Library } from './components/Library';
 import { ViewState, Book } from './types';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RainbowAuroraBackground } from './components/RainbowAuroraBackground';
 
 const App: React.FC = () => {
   const [currentView, setView] = useState<ViewState>(ViewState.LANDING);
@@ -115,28 +115,25 @@ const App: React.FC = () => {
   };
 
   return (
-    <>
-      <RainbowAuroraBackground isDarkMode={isDarkMode} />
-      <AppShell 
-        currentView={currentView} 
-        setView={setView} 
-        isDarkMode={isDarkMode}
-        toggleTheme={toggleTheme}
-      >
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentView}
-            initial={{ opacity: 0, filter: 'blur(5px)' }}
-            animate={{ opacity: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, filter: 'blur(5px)' }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="w-full h-full"
-          >
-            {renderView()}
-          </motion.div>
-        </AnimatePresence>
-      </AppShell>
-    </>
+    <AppShell 
+      currentView={currentView} 
+      setView={setView} 
+      isDarkMode={isDarkMode}
+      toggleTheme={toggleTheme}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentView}
+          initial={{ opacity: 0, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, filter: 'blur(10px)' }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className="w-full h-full"
+        >
+          {renderView()}
+        </motion.div>
+      </AnimatePresence>
+    </AppShell>
   );
 };
 
