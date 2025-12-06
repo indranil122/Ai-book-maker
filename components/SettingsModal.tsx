@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Key, Check, AlertCircle, Save, Loader2 } from 'lucide-react';
+import { X, Key, Check, AlertCircle, Save, Loader2, ExternalLink, HelpCircle } from 'lucide-react';
 import { getApiKey, saveApiKey, clearApiKey } from '../config';
 import { geminiService } from '../services/geminiService';
 
@@ -76,35 +76,75 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
-              <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 text-sm p-4 rounded-xl flex gap-3">
-                 <AlertCircle className="shrink-0" size={18} />
-                 <p>
-                   Lumina requires a Google Gemini API Key. If the default key has exceeded its quota, please provide your own free key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold">Google AI Studio</a>.
-                 </p>
+            <div className="p-6 space-y-6">
+              
+              {/* Help Guide */}
+              <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                    <div className="mt-0.5 p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full shrink-0">
+                        <HelpCircle size={16} />
+                    </div>
+                    <div className="flex-1">
+                        <h4 className="text-sm font-bold text-blue-900 dark:text-blue-100 mb-2">How to get your API Key</h4>
+                        <ul className="text-xs text-blue-800 dark:text-blue-300 space-y-2 mb-3">
+                            <li className="flex gap-2">
+                                <span className="font-bold opacity-70">1.</span>
+                                <span>Go to Google AI Studio (it's free).</span>
+                            </li>
+                            <li className="flex gap-2">
+                                <span className="font-bold opacity-70">2.</span>
+                                <span>Click <strong>"Get API key"</strong> and create a key in a new project.</span>
+                            </li>
+                            <li className="flex gap-2">
+                                <span className="font-bold opacity-70">3.</span>
+                                <span>Copy the key string and paste it below.</span>
+                            </li>
+                        </ul>
+                        <a 
+                            href="https://aistudio.google.com/app/apikey" 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                        >
+                            Get API Key <ExternalLink size={12} />
+                        </a>
+                    </div>
+                </div>
               </div>
 
+              {/* Input Section */}
               <div>
                 <label className="block text-xs font-bold text-stone-500 dark:text-stone-400 uppercase tracking-widest mb-2">
-                  Google Gemini API Key
+                  Enter Key
                 </label>
-                <input
-                  type="password"
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="AIzaSy..."
-                  className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-saffron-500 focus:outline-none text-stone-900 dark:text-white font-mono text-sm"
-                />
+                <div className="relative">
+                    <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="AIzaSy..."
+                    className="w-full px-4 py-3 bg-stone-50 dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-saffron-500 focus:outline-none text-stone-900 dark:text-white font-mono text-sm pr-10"
+                    />
+                    {apiKey && (
+                        <button 
+                            onClick={() => setApiKey('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
               </div>
 
+              {/* Status Messages */}
               {status === 'error' && (
-                <div className="text-red-500 text-sm flex items-center gap-2">
+                <div className="text-red-500 text-sm flex items-center gap-2 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg">
                    <AlertCircle size={16} /> {errorMsg}
                 </div>
               )}
 
               {status === 'success' && (
-                <div className="text-green-500 text-sm flex items-center gap-2">
+                <div className="text-green-600 text-sm flex items-center gap-2 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg font-medium">
                    <Check size={16} /> API Key Verified & Saved!
                 </div>
               )}
@@ -112,8 +152,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               <div className="pt-2">
                 <button
                   onClick={handleSave}
-                  disabled={status === 'testing'}
-                  className="w-full py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-bold rounded-xl hover:bg-saffron-500 dark:hover:bg-saffron-400 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                  disabled={status === 'testing' || !apiKey.trim()}
+                  className="w-full py-3 bg-stone-900 dark:bg-white text-white dark:text-stone-900 font-bold rounded-xl hover:bg-saffron-500 dark:hover:bg-saffron-400 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-saffron-500/25"
                 >
                   {status === 'testing' ? <Loader2 className="animate-spin" /> : <Save size={18} />}
                   Save Configuration
